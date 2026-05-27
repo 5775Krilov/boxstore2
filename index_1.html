@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>BOXSTORE — Симулятор</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;background:#111;color:#f0f0ee;font-family:'Courier New',monospace;font-size:14px}
+body{display:flex;flex-direction:column}
+
+/* SCREENS */
+.screen{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;background:#111;overflow-y:auto}
+.screen.hidden{display:none}
+
+/* START SCREEN */
+.logo{background:#E8192C;color:#fff;font-weight:700;font-size:18px;letter-spacing:3px;padding:6px 16px;border-radius:4px;margin-bottom:16px;display:inline-block}
+h1{font-size:20px;margin-bottom:8px;text-align:center}
+.sub{color:#777;font-size:12px;text-align:center;line-height:1.7;margin-bottom:16px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;width:100%;max-width:360px}
+.stat{background:#1e1e1c;border-radius:6px;padding:10px;text-align:center}
+.stat .n{font-size:20px;font-weight:700;color:#E8192C}
+.stat .l{font-size:9px;color:#555;margin-top:2px}
+input[type=text]{width:100%;max-width:360px;background:#1e1e1c;border:2px solid #333;color:#f0f0ee;font-size:16px;padding:14px 12px;border-radius:8px;font-family:'Courier New',monospace;text-align:center;margin-bottom:10px;display:block;-webkit-appearance:none;appearance:none}
+input[type=text]:focus{outline:none;border-color:#E8192C}
+input[type=text]::placeholder{color:#444}
+.err{color:#E8192C;font-size:11px;margin-bottom:8px;display:none}
+
+/* MAIN BTN */
+.btn-main{background:#E8192C;color:#fff;border:none;font-size:16px;font-weight:700;padding:16px;border-radius:8px;font-family:'Courier New',monospace;width:100%;max-width:360px;display:block;min-height:52px;cursor:pointer;-webkit-appearance:none;appearance:none;touch-action:manipulation}
+.btn-main:active{background:#b51020;transform:scale(0.98)}
+.btn-sec{background:#1e1e1c;color:#aaa;border:1px solid #333;font-size:13px;padding:12px;border-radius:8px;font-family:'Courier New',monospace;width:100%;max-width:360px;display:block;min-height:44px;cursor:pointer;touch-action:manipulation;margin-top:8px}
+.btn-sec:active{background:#2a2a28}
+
+/* HUD */
+#hud{background:#0a0a0a;border-bottom:2px solid #E8192C;padding:6px 10px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:nowrap;overflow:hidden}
+.hlogo{background:#E8192C;color:#fff;font-weight:700;font-size:9px;letter-spacing:1px;padding:3px 5px;flex-shrink:0;line-height:1.2}
+#htimer{font-size:14px;font-weight:700;color:#f59e0b;flex-shrink:0}
+.hb{display:flex;flex-direction:column;flex-shrink:0}
+.hl{font-size:7px;color:#555;letter-spacing:0.5px}
+.hv{font-size:11px;font-weight:700}
+.hv.g{color:#22c55e}.hv.w{color:#f59e0b}.hv.r{color:#E8192C}
+.hbar{width:45px;height:4px;background:#222;border-radius:2px;margin-top:1px;flex-shrink:0}
+.hbar-f{height:100%;border-radius:2px}
+#hlvl{background:#378ADD22;border:1px solid #378ADD;color:#378ADD;font-size:8px;padding:2px 5px;border-radius:3px;white-space:nowrap;flex-shrink:0}
+#hspd{background:#222;border:1px solid #333;color:#888;font-size:9px;padding:2px 6px;border-radius:3px;cursor:pointer;touch-action:manipulation;flex-shrink:0;font-family:'Courier New',monospace}
+
+/* GAME CANVAS AREA */
+#game-area{flex:1;position:relative;overflow:hidden}
+canvas{display:block;width:100%;height:100%}
+
+/* CONTROLS */
+#joy-zone{position:absolute;bottom:80px;left:12px;width:100px;height:100px;z-index:10;touch-action:none}
+#joy-base{position:absolute;inset:0;border-radius:50%;background:rgba(255,255,255,0.05);border:2px solid rgba(255,255,255,0.1)}
+#joy-knob{position:absolute;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.3);top:50%;left:50%;transform:translate(-50%,-50%)}
+#joy-knob.active{background:rgba(232,25,44,0.4);border-color:#E8192C}
+#act-btn{position:absolute;bottom:80px;right:12px;width:68px;height:68px;border-radius:50%;background:rgba(232,25,44,0.15);border:2px solid #E8192C;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#E8192C;text-align:center;line-height:1.2;z-index:10;touch-action:manipulation;cursor:pointer;user-select:none}
+#act-btn:active{background:rgba(232,25,44,0.4);transform:scale(0.95)}
+#spd-mid{position:absolute;bottom:88px;left:50%;transform:translateX(-50%);background:#1e1e1ccc;border:1px solid #333;color:#666;font-size:9px;padding:5px 12px;border-radius:12px;z-index:10;touch-action:manipulation;cursor:pointer;font-family:'Courier New',monospace;white-space:nowrap}
+#near-hint{position:absolute;top:0;left:50%;transform:translateX(-50%);background:#f59e0bdd;color:#111;font-size:10px;font-weight:700;padding:3px 12px;border-radius:0 0 8px 8px;z-index:10;display:none;white-space:nowrap}
+#glog{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:#0a0a0a99;border:1px solid #1e1e1e;border-radius:4px;padding:4px 10px;z-index:5;white-space:nowrap;max-width:calc(100% - 230px);overflow:hidden}
+#glog-t{font-size:8px;color:#444;text-overflow:ellipsis;overflow:hidden}
+
+/* EVENT SHEET */
+#event-sheet{position:fixed;inset:0;z-index:200;background:#000a;display:none;flex-direction:column;justify-content:flex-end}
+#event-inner{background:#141414;border-top:2px solid #E8192C;border-radius:16px 16px 0 0;padding:16px 14px;padding-bottom:env(safe-area-inset-bottom,16px);max-height:82vh;overflow-y:auto}
+.etag{font-size:8px;color:#E8192C;letter-spacing:2px;text-transform:uppercase;margin-bottom:5px}
+.etitle{font-size:14px;font-weight:700;margin-bottom:6px;line-height:1.4}
+.ebody{font-size:11px;color:#999;margin-bottom:12px;line-height:1.6;padding-left:8px;border-left:2px solid #E8192C44}
+.eopts{display:flex;flex-direction:column;gap:8px}
+.eopt{background:#1e1e1c;border:1px solid #2a2a2a;color:#f0f0ee;font-size:12px;padding:13px 12px;border-radius:8px;text-align:left;line-height:1.5;width:100%;cursor:pointer;touch-action:manipulation;font-family:'Courier New',monospace;-webkit-appearance:none;appearance:none}
+.eopt:active{background:#2e2e2c;border-color:#E8192C}
+
+/* RESULT */
+#result-overlay{position:fixed;inset:0;z-index:300;background:#000c;display:none;align-items:center;justify-content:center;padding:16px}
+#result-card{background:#141414;border-radius:12px;padding:22px 18px;width:100%;max-width:380px;text-align:center}
+#result-card.good{border:2px solid #22c55e;box-shadow:0 0 30px #22c55e22}
+#result-card.bad{border:2px solid #E8192C;box-shadow:0 0 30px #E8192C22}
+#result-card.neu{border:2px solid #f59e0b;box-shadow:0 0 30px #f59e0b22}
+.r-icon{font-size:36px;margin-bottom:8px}
+.r-title{font-size:15px;font-weight:700;margin-bottom:8px}
+.r-body{font-size:12px;color:#bbb;line-height:1.6;margin-bottom:10px}
+.r-xp{font-size:11px;font-weight:700;margin-bottom:10px}
+.r-xp.good{color:#22c55e}.r-xp.bad{color:#E8192C}.r-xp.neu{color:#f59e0b}
+.r-tool{font-size:10px;color:#555;border-top:1px solid #222;padding-top:8px;margin-bottom:14px;font-style:italic}
+.r-cont-btn{background:#E8192C;color:#fff;border:none;font-size:14px;padding:14px;border-radius:8px;width:100%;cursor:pointer;touch-action:manipulation;font-family:'Courier New',monospace;-webkit-appearance:none}
+.r-cont-btn:active{background:#b51020}
+
+/* FINAL */
+#final-screen{position:fixed;inset:0;z-index:400;background:#111;overflow-y:auto;display:none;padding:16px;padding-bottom:40px}
+.fc-wrap{max-width:420px;margin:0 auto}
+.fc-title{font-size:18px;font-weight:700;text-align:center;margin-bottom:4px}
+.fc-sub{color:#666;font-size:11px;text-align:center;margin-bottom:14px}
+.fc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.fc-stat{background:#1e1e1c;border-radius:6px;padding:10px}
+.fc-stat .fl{font-size:8px;color:#555;margin-bottom:3px}
+.fc-stat .fv{font-size:17px;font-weight:700}
+.sec{font-size:8px;color:#555;letter-spacing:1px;text-transform:uppercase;margin:12px 0 6px}
+.skill-row{display:flex;align-items:center;gap:6px;margin-bottom:7px}
+.sk-name{font-size:10px;color:#888;width:110px;flex-shrink:0}
+.sk-bar{flex:1;height:7px;background:#222;border-radius:3px;overflow:hidden}
+.sk-fill{height:100%;border-radius:3px;transition:width 0.6s}
+.sk-pct{font-size:10px;color:#aaa;width:28px;text-align:right;flex-shrink:0}
+.vbox{background:#1e1e1c;border-radius:6px;padding:11px 12px;font-size:11px;color:#aaa;line-height:1.6;margin-bottom:8px}
+.vbox b{color:#f0f0ee}
+.vbox.str{border-left:3px solid #22c55e}
+.vbox.grow{border-left:3px solid #E8192C}
+.vbox.main{border-left:3px solid #378ADD}
+.email-box{background:#1e1e1c;border-radius:8px;padding:12px;margin-top:10px}
+.email-box p{font-size:10px;color:#666;margin-bottom:8px}
+#send-status{font-size:10px;color:#555;text-align:center;margin-top:6px}
+</style>
+</head>
+<body>
+
+<!-- START SCREEN -->
+<div id="start-screen" class="screen">
+  <div class="logo">BOXSTORE</div>
+  <h1>Симулятор смены</h1>
+  <div class="sub">Ты — старший оператор участка раскроя.<br>Управляй джойстиком, реагируй на события.<br>Цель: 150 листов, ОЕЕ ≥ 70%</div>
+  <div class="stats">
+    <div class="stat"><div class="n">15</div><div class="l">событий</div></div>
+    <div class="stat"><div class="n">4</div><div class="l">навыка</div></div>
+    <div class="stat"><div class="n">~15</div><div class="l">минут</div></div>
+  </div>
+  <input type="text" id="name-inp" placeholder="Введи своё ФИО" maxlength="50" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false">
+  <div class="err" id="name-err">Пожалуйста, введи ФИО</div>
+  <button class="btn-main" id="start-btn">Начать смену →</button>
+</div>
+
+<!-- HUD -->
+<div id="hud" style="display:none">
+  <div class="hlogo">BOXSTORE</div>
+  <div id="htimer">08:00</div>
+  <button id="hspd">▶▶ x3</button>
+  <div class="hb">
+    <div class="hl">ОЕЕ</div>
+    <div id="hoee" class="hv w">62%</div>
+    <div class="hbar"><div id="hoee-f" class="hbar-f" style="width:62%;background:#f59e0b"></div></div>
+  </div>
+  <div class="hb"><div class="hl">Листов</div><div id="hsh" class="hv">0/150</div></div>
+  <div class="hb"><div class="hl">XP</div><div id="hxp" class="hv">0</div></div>
+  <div class="hb"><div class="hl">😊</div><div id="hmood" class="hv w">😐</div></div>
+  <div id="hlvl">Ур.1</div>
+</div>
+
+<!-- GAME -->
+<div id="game-area" style="display:none">
+  <canvas id="gc"></canvas>
+  <div id="joy-zone"><div id="joy-base"></div><div id="joy-knob"></div></div>
+  <div id="act-btn">ВОЙТИ<br>в зону</div>
+  <div id="spd-mid">▶▶ x3</div>
+  <div id="near-hint">Нажми ВОЙТИ</div>
+  <div id="glog"><div id="glog-t">Смена началась</div></div>
+</div>
+
+<!-- EVENT SHEET -->
+<div id="event-sheet">
+  <div id="event-inner">
+    <div class="etag" id="etag"></div>
+    <div class="etitle" id="etitle"></div>
+    <div class="ebody" id="ebody"></div>
+    <div class="eopts" id="eopts"></div>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div id="result-overlay">
+  <div id="result-card">
+    <div class="r-icon" id="r-icon"></div>
+    <div class="r-title" id="r-title"></div>
+    <div class="r-body" id="r-body"></div>
+    <div class="r-xp" id="r-xp"></div>
+    <div class="r-tool" id="r-tool"></div>
+    <button class="r-cont-btn" id="r-cont">Продолжить смену →</button>
+  </div>
+</div>
+
+<!-- FINAL -->
+<div id="final-screen">
+  <div class="fc-wrap">
+    <div class="fc-title" id="fc-title">Смена завершена</div>
+    <div class="fc-sub" id="fc-sub"></div>
+    <div class="fc-grid">
+      <div class="fc-stat"><div class="fl">Листов</div><div class="fv" id="fc-sh"></div></div>
+      <div class="fc-stat"><div class="fl">ОЕЕ</div><div class="fv" id="fc-oee"></div></div>
+      <div class="fc-stat"><div class="fl">Опыт</div><div class="fv" style="color:#378ADD" id="fc-xp"></div></div>
+      <div class="fc-stat"><div class="fl">Уровень</div><div class="fv" style="color:#22c55e;font-size:12px" id="fc-lvl"></div></div>
+    </div>
+    <div class="sec">Профиль навыков</div>
+    <div id="fc-skills"></div>
+    <div class="sec">Общий анализ</div>
+    <div class="vbox main" id="fc-verdict"></div>
+    <div class="sec">Сильные стороны</div>
+    <div class="vbox str" id="fc-str"></div>
+    <div class="sec">Зона роста</div>
+    <div class="vbox grow" id="fc-grow"></div>
+    <div class="sec">Рекомендации</div>
+    <div class="vbox" id="fc-rec"></div>
+    <div class="email-box" style="text-align:center">
+      <div style="font-size:36px;margin-bottom:8px">📸</div>
+      <div style="font-size:13px;font-weight:600;color:#f0f0ee;margin-bottom:6px">Сделайте скриншот этого экрана</div>
+      <div style="font-size:11px;color:#888;line-height:1.6">и отправьте вашему руководителю</div>
+    </div>
+    <button class="btn-sec" id="restart-btn">Новая смена</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// GAME DATA
+// ============================================================
+const WW=600,WH=860;
+const canvas=document.getElementById('gc');
+const ctx=canvas.getContext('2d');
+
+function resizeCanvas(){
+  const area=document.getElementById('game-area');
+  canvas.width=area.clientWidth;
+  canvas.height=area.clientHeight;
+}
+window.addEventListener('resize',resizeCanvas);
+
+function wx(x){return x*canvas.width/WW}
+function wy(y){return y*canvas.height/WH}
+function ws(s){return s*Math.min(canvas.width/WW,canvas.height/WH)}
+
+const MAT={белый:'#f0f0f0',бурый:'#8B5E3C',чёрный:'#252525',лайм:'#7ec850',барби:'#ff69b4',небо:'#87ceeb',розовый:'#ffb6c1',серый:'#999',ягодный:'#8B1A4A'};
+
+// Pallets - two compact rows
+const PALLETS=[
+  {x:4,y:4,w:56,h:36,c1:'белый',c2:null,sz:'2300×1600'},
+  {x:64,y:4,w:56,h:36,c1:'белый',c2:null,sz:'2300×1355'},
+  {x:124,y:4,w:56,h:36,c1:'белый',c2:'белый',sz:'2300×1030'},
+  {x:184,y:4,w:56,h:36,c1:'бурый',c2:null,sz:'1900×1200'},
+  {x:244,y:4,w:56,h:36,c1:'бурый',c2:null,sz:'2300×1600'},
+  {x:304,y:4,w:56,h:36,c1:'чёрный',c2:null,sz:'2300×1030'},
+  {x:364,y:4,w:56,h:36,c1:'чёрный',c2:'чёрный',sz:'1230×1060'},
+  {x:424,y:4,w:56,h:36,c1:'лайм',c2:'барби',sz:'1600×1230'},
+  {x:484,y:4,w:56,h:36,c1:'небо',c2:'розовый',sz:'1600×1230'},
+  {x:544,y:4,w:52,h:36,c1:'ягодный',c2:'белый',sz:'1600×1230'},
+  {x:4,y:44,w:56,h:36,c1:'белый',c2:null,sz:'2300×1200'},
+  {x:64,y:44,w:56,h:36,c1:'бурый',c2:null,sz:'2300×1355'},
+  {x:124,y:44,w:56,h:36,c1:'бурый',c2:null,sz:'2300×1200'},
+  {x:184,y:44,w:56,h:36,c1:'чёрный',c2:null,sz:'1230×1590'},
+  {x:244,y:44,w:56,h:36,c1:'чёрный',c2:null,sz:'1900×1230'},
+  {x:304,y:44,w:56,h:36,c1:'серый',c2:'белый',sz:'1900×1230'},
+  {x:364,y:44,w:56,h:36,c1:'розовый',c2:'небо',sz:'1900×1230'},
+  {x:424,y:44,w:56,h:36,c1:'лайм',c2:null,sz:'1600×1230'},
+  {x:484,y:44,w:112,h:36,c1:'бурый',c2:null,sz:'1900×1230'},
+];
+
+// Machine pairs - 4 pairs
+const MPAIRS=[];
+for(let p=0;p<4;p++){
+  const bx=16+p*148,by=148,mw=58,mh=68,tw=36,th=28;
+  MPAIRS.push({
+    id:p,
+    m1:{id:p*2+1,x:bx,y:by,w:mw,h:mh,on:true,prog:Math.random()*0.8,
+      tT:{x:bx+2,y:by-th-2,w:tw,h:th},tB:{x:bx+2,y:by+mh+2,w:tw,h:th},
+      bag:{x:bx+mw+2,y:by+16,w:14,h:20}},
+    m2:{id:p*2+2,x:bx+mw+24,y:by,w:mw,h:mh,on:true,prog:Math.random()*0.6,
+      tT:{x:bx+mw+26,y:by-th-2,w:tw,h:th},tB:{x:bx+mw+26,y:by+mh+2,w:tw,h:th},
+      bag:{x:bx+mw+12,y:by+16,w:14,h:20}},
+    opX:bx+mw+12,opY:by-10,nm:`Р${p*2+1}/${p*2+2}`,
+  });
+}
+
+// Row 2
+const ROW2=[
+  {type:'st9',x:320,y:265,w:130,h:65,label:'Ст.9',tL:{x:185,y:278,w:50,h:40},tR:{x:455,y:278,w:50,h:40},opX:420,opY:255},
+  {type:'st10',x:185,y:265,w:60,h:65,label:'Ст.10'},
+  {type:'lam',x:96,y:265,w:58,h:65,label:'Лам.'},
+  {type:'uv',x:4,y:265,w:58,h:65,label:'УФ'},
+  {type:'plastic',x:455,y:265,w:140,h:65,label:'Гибка\nпластика'},
+];
+
+// Pack zone
+const PACK=[
+  {x:20,y:370,w:78,h:55,label:'Уп.1',opX:59,opY:433},
+  {x:116,y:370,w:78,h:55,label:'Уп.2',opX:155,opY:433},
+  {x:212,y:370,w:78,h:55,label:'Уп.3',opX:null,opY:null},
+];
+const PALLOUT=[
+  {x:312,y:370,w:88,h:55,label:'OZON'},
+  {x:412,y:370,w:88,h:55,label:'WB'},
+  {x:512,y:370,w:84,h:55,label:'MOOL'},
+];
+const TRASH={x:4,y:192,w:22,h:32};
+
+// Corridors
+const CORRIDORS=[
+  {x:0,y:84,w:WW,h:70},    // коридор между паллетами и станками
+  {x:0,y:230,w:WW,h:80},   // главный коридор между рядами
+  {x:0,y:340,w:WW,h:30},
+  {x:0,y:370,w:WW,h:110},
+  {x:0,y:84,w:50,h:260},   // широкий левый боковой
+  {x:WW-50,y:84,w:50,h:260}, // широкий правый боковой
+];
+for(let p=0;p<3;p++){
+  const x=MPAIRS[p].m2.x+MPAIRS[p].m2.w;
+  CORRIDORS.push({x,y:120,w:MPAIRS[p+1].m1.x-x,h:220});
+}
+function inCorridor(px,py){
+  for(const c of CORRIDORS)if(px>=c.x&&px<=c.x+c.w&&py>=c.y&&py<=c.y+c.h)return true;
+  return false;
+}
+
+// ============================================================
+// GAME STATE
+// ============================================================
+const G={
+  running:false,eventActive:false,resultShowing:false,
+  speed:3,time:8*60,timeEnd:16*60,
+  oee:0.62,sheets:0,sheetsTarget:150,
+  xp:0,level:1,mood:50,
+  logText:'Смена началась',
+  resolved:new Set(),activeEvents:[],scheduled:[],
+  skillScores:{task:0,people:0,loss:0,authority:0},
+  skillMax:{task:0,people:0,loss:0,authority:0},
+};
+const player={x:300,y:265,speed:110};
+let playerName='';
+
+// ============================================================
+// EVENTS
+// ============================================================
+const EVENTS=[
+  {id:'wrong_side',time:25,x:MPAIRS[1].opX,y:MPAIRS[1].opY,tag:'Качество · СОП п.2.2',title:'Лист лайм-барби положен неправильно',body:'Клиент заказал лайм-барби. По СОП лайм кладётся ВНИЗ (лицевой к столу), барби вверх — оператор видит её. Резчик положил наоборот. На лицевой стороне лайма — прогары от лазера. Лист в брак.',skill:'loss',
+    opts:[{t:'«Переделай» — без объяснения почему',s:1,type:'neu',fb:'Переделал. Через день та же ошибка на другом цвете.',tool:'Директивный стиль без обоснования',xp:10,oee:0.01,mood:-3},{t:'Записать в брак и продолжить',s:0,type:'bad',fb:'Ещё 3 листа в брак. Клиент получил дефект.',tool:'Нет инструмента = системная потеря',xp:3,oee:-0.04,mood:-5},{t:'Попросить коллегу объяснить',s:1,type:'neu',fb:'Объяснил по-своему. Стандарт размыт.',tool:'Делегирование без контроля',xp:8,oee:0,mood:0},{t:'Остановить, объяснить «лицо вниз» с примером, проверить следующий лист',s:2,type:'good',fb:'Правило закреплено. Следующие листы без брака.',tool:'Наставнический стиль + confirm back',xp:30,oee:0.03,mood:8}]},
+  {id:'no_clamp',time:50,x:MPAIRS[0].opX,y:MPAIRS[0].opY,tag:'Безопасность · СОП п.2.3',title:'Прижим не установлен — сопло стащило лист',body:'Гнутый лист. Галочка в системе не стоит. Оператор нажал старт. Сопло зацепило выпуклую часть — стащило лист. Раскрой сорван, лист испорчен, 8 минут потеряно.',skill:'loss',
+    opts:[{t:'Сделать замечание: «Будь внимательнее»',s:0,type:'bad',fb:'Через неделю тот же случай с другим резчиком.',tool:'Замечание без системы',xp:5,oee:-0.01,mood:-8},{t:'Записать в журнал и идти дальше',s:0,type:'bad',fb:'В журнале есть запись. В голове — нет.',tool:'Фиксация без системы',xp:5,oee:-0.02,mood:0},{t:'Ввести правило: перед стартом на гнутом — пауза и визуальная проверка прижимов',s:2,type:'good',fb:'Системное решение. Месяц без инцидентов.',tool:'5С Стандартизация',xp:35,oee:0.04,mood:5},{t:'Добавить в чек-лист: «Прижимы на гнутых листах»',s:2,type:'good',fb:'Чек-лист работает для всей бригады.',tool:'5С + чек-лист',xp:28,oee:0.02,mood:3}]},
+  {id:'speed_low',time:75,x:MPAIRS[2].m1.x+29,y:MPAIRS[2].m1.y+34,tag:'Дисциплина · Инициатива',title:'Оператор своевольно снизил скорость станка',body:'Резчик 5/6 без разрешения снизил скорость резки «для лучшего качества». Произошла поломка узла подачи. Инженеры приедут через 1.5 часа. Станок встал.',skill:'authority',
+    opts:[{t:'Ничего — поломки случаются',s:0,type:'bad',fb:'Через месяц тот же сценарий.',tool:'Нет системного решения',xp:3,oee:-0.03,mood:0},{t:'«Ты сломал станок — будешь отвечать»',s:0,type:'bad',fb:'Напряжение в бригаде. Правило не введено.',tool:'Обвинение без разбора',xp:5,oee:-0.02,mood:-18},{t:'SBI: факт → последствие → «Почему не согласовал?» → ввести правило',s:2,type:'good',fb:'Правило введено: параметры меняет только старший или инженер.',tool:'SBI + стандартизация',xp:30,oee:0.01,mood:2},{t:'Зафиксировать правило: параметры только через заявку',s:2,type:'good',fb:'Все операторы узнали.',tool:'Авторитет через стандарт',xp:25,oee:0,mood:0}]},
+  {id:'tired',time:105,x:PACK[1].opX,y:PACK[1].opY,tag:'Работа с людьми',title:'Упаковщик не выспался — темп вдвое ниже',body:'Упаковщик 2 зевает, движения замедленные. За 2 часа — 60 деталей вместо 130. Говорит: «Нормально, справлюсь».',skill:'people',
+    opts:[{t:'GROW: «Как ты?» → «Что влияет?» → «Что поможет?» → договориться',s:2,type:'good',fb:'Признал состояние. Договорились. Темп вырос на 60%.',tool:'GROW + поддерживающий стиль',xp:28,oee:0.02,mood:10},{t:'«Работай быстрее — у нас план»',s:0,type:'bad',fb:'Обиделся. Ошибок стало больше.',tool:'Давление без понимания',xp:5,oee:-0.02,mood:-12},{t:'Перераспределить: дать более лёгкую операцию',s:2,type:'good',fb:'Ситуативное решение. План выполнен.',tool:'Ситуационное лидерство',xp:25,oee:0.02,mood:5},{t:'Отправить домой',s:1,type:'neu',fb:'Бригада минус один. Перегрузка остальных.',tool:'Радикально без альтернатив',xp:8,oee:-0.02,mood:-5}]},
+  {id:'card',time:90,x:300,y:240,tag:'Процесс · СОП п.2.12',title:'Карточка не закрыта — заказ идёт повторно',body:'Резчик выполнил заказ но не закрыл карточку в системе. Через 40 минут система поставила заказ снова. Начали резать — потратили лист и 12 минут до того как заметили.',skill:'task',
+    opts:[{t:'4W1H: «После раскроя — закрыть карточку сразу. Критерий: скриншот»',s:2,type:'good',fb:'Ни одного дублирования за смену.',tool:'4W1H + критерий приёмки',xp:30,oee:0.03,mood:5},{t:'Самому закрыть и пойти дальше',s:0,type:'bad',fb:'Резчик не научился. Завтра то же.',tool:'Нет обучения',xp:3,oee:0,mood:0},{t:'Разобрать на планёрке: что теряем при дублировании',s:2,type:'good',fb:'Мотивация внутренняя, а не через страх.',tool:'Вовлечение через последствия',xp:25,oee:0.02,mood:8},{t:'Написать на стенде: «ЗАКРЫВАЙ КАРТОЧКУ!»',s:1,type:'neu',fb:'Неделю работает. Потом перестают читать.',tool:'Визуальный менеджмент без системы',xp:10,oee:0.01,mood:0}]},
+  {id:'phone',time:125,x:MPAIRS[2].opX,y:MPAIRS[2].opY,tag:'Потери · Перекрываемое время',title:'Резчик в телефоне пока режет станок',body:'Станок работает, стол выедет через 120с. Рядом 180 деталей ждут упаковки. СОП: пока режет станок (283с) — оператор упаковывает (240с). Это перекрываемое время.',skill:'loss',
+    opts:[{t:'Объяснить: «283с резки = упаковать 50 деталей. Вот задача»',s:2,type:'good',fb:'До обеда +180 деталей без лишних людей.',tool:'Перекрываемое время СОП п.2',xp:25,oee:0.03,mood:5},{t:'Попросить предложить чем заняться самому',s:2,type:'good',fb:'Предложил сам — мотивация выше.',tool:'GROW: активизация инициативы',xp:28,oee:0.02,mood:8},{t:'Ничего — станок работает, формально норма',s:0,type:'bad',fb:'47 мин × смена = сотни потерянных деталей.',tool:'Нет видения потерь',xp:0,oee:-0.02,mood:0},{t:'Замечание при всех: «Убери телефон»',s:0,type:'bad',fb:'Обиделся. Работал медленнее весь день.',tool:'Публичная критика без задачи',xp:5,oee:-0.01,mood:-12}]},
+  {id:'sheets_low',time:155,x:300,y:240,tag:'Потери · Запасы',title:'Паллета 2300×1355 белый почти пустая',body:'Осталось ~8 листов. Станки 3/4 и 5/6 работают с этим форматом. Через 15 минут оба встанут одновременно.',skill:'loss',
+    opts:[{t:'Попросить резчика сходить за листами',s:1,type:'neu',fb:'8 минут потеряно. Листы нашли.',tool:'Делегирование задачи',xp:10,oee:-0.01,mood:2},{t:'Подождать — кто-то сам заметит',s:0,type:'bad',fb:'Через 18 мин оба встали. 72 минуты простоя.',tool:'Нет проактивности',xp:0,oee:-0.06,mood:-8},{t:'Переключить одну пару на другой формат',s:1,type:'neu',fb:'Спасли одну пару. Вторая всё равно встала.',tool:'Частичное решение',xp:12,oee:-0.02,mood:0},{t:'Немедленно: подача со склада + предупредить обе пары операторов',s:2,type:'good',fb:'Листы за 12 мин. Станки не встали. Потерь нет.',tool:'Проактивное управление запасами',xp:25,oee:0.03,mood:5}]},
+  {id:'5s',time:180,x:TRASH.x+11,y:TRASH.y+16,tag:'5С · Стандарт рабочего места',title:'Пятница — еженедельный 5С аудит',body:'Между станками 4 и 5 — обрезки на полу. Бэг переполнен. Стол станка 3 без маркировки зон. Инструмент лежит произвольно.',skill:'loss',
+    opts:[{t:'Убрать самому — быстрее',s:0,type:'bad',fb:'Через неделю та же картина.',tool:'Тушение вместо системы',xp:5,oee:0,mood:-5},{t:'Сфотографировать и показать команде как пример',s:2,type:'good',fb:'Визуальный пример работает сильнее слов.',tool:'Визуальный менеджмент + 5С',xp:25,oee:0.01,mood:5},{t:'Ничего — скоро обед, разберёмся потом',s:0,type:'bad',fb:'5С аудит: -12 баллов.',tool:'Нет стандарта = нет порядка',xp:3,oee:-0.01,mood:-5},{t:'Зафиксировать нарушения, разобрать с командой, назначить ответственных по зонам',s:2,type:'good',fb:'+15 баллов следующий аудит. Команда понимает зачем.',tool:'5С: Стандартизация + Совершенствование',xp:30,oee:0.02,mood:8}]},
+  {id:'8d',time:205,x:MPAIRS[1].m1.x+29,y:MPAIRS[1].m1.y+34,tag:'Решение проблем · 5 Почему',title:'Станок 3 третий раз даёт косой рез',body:'Третий случай за неделю. Резчик: «Не знаю почему». Первые два раза просто перенастраивали. Клиент начинает замечать брак.',skill:'task',
+    opts:[{t:'Снова перенастроить как в прошлый раз',s:0,type:'bad',fb:'Четвёртый раз. Клиент написал претензию.',tool:'Временная мера без корня',xp:5,oee:-0.03,mood:-5},{t:'Вызвать инженера для диагностики',s:1,type:'neu',fb:'Нашёл причину. Но без 5 Почему не задокументировано.',tool:'Правильное действие без закрепления',xp:15,oee:0.01,mood:0},{t:'5 Почему до корня: косой рез → луч смещается → грязная линза → нет графика чистки',s:2,type:'good',fb:'Ввели регламент чистки оптики. Проблема ушла.',tool:'5 Почему / 8D: коренная причина',xp:35,oee:0.04,mood:5},{t:'Перевести заказы на другие станки',s:1,type:'neu',fb:'Заказы выполнены. Станок 3 всё ещё с браком.',tool:'Обход без решения',xp:8,oee:-0.01,mood:0}]},
+  {id:'idea',time:235,x:PACK[0].opX,y:PACK[0].opY,tag:'Коммуникация · Кайдзен',title:'Упаковщик предлагает идею по оптимизации',body:'Упаковщик 1: «Если развернуть тележку другой стороной — удобнее укладывать и быстрее». Ты занят.',skill:'people',
+    opts:[{t:'«Некогда. Потом»',s:0,type:'bad',fb:'Идею не проверили. Больше не предлагает.',tool:'Убитая инициатива',xp:3,oee:0,mood:-8},{t:'«Запиши в листок улучшений»',s:1,type:'neu',fb:'Внедрили завтра. Правильно, но медленно.',tool:'Система улучшений',xp:15,oee:0.01,mood:3},{t:'«Хорошая идея. Покажи как» + проверить через час',s:2,type:'good',fb:'Скорость укладки +15%. Упаковщик — соавтор улучшения.',tool:'Поддерживающий стиль + кайдзен',xp:30,oee:0.02,mood:15},{t:'«Упаковывай по стандарту»',s:0,type:'bad',fb:'Инициатива убита навсегда.',tool:'Автократия = нет кайдзен',xp:0,oee:-0.01,mood:-20}]},
+  {id:'conflict',time:260,x:MPAIRS[3].opX,y:MPAIRS[3].opY,tag:'Конфликт в бригаде',title:'Два оператора не разговаривают второй день',body:'Не передают листы друг другу. Скорость упала на 15%. Атмосфера напряжённая. Остальные чувствуют.',skill:'people',
+    opts:[{t:'Публичный разбор при всей бригаде',s:0,type:'bad',fb:'Оба закрылись. Напряжение выросло.',tool:'Публичная критика',xp:5,oee:-0.02,mood:-15},{t:'Переставить одного на другой участок',s:1,type:'neu',fb:'Краткосрочно. Причина не устранена.',tool:'Избегание вместо решения',xp:10,oee:0.01,mood:-3},{t:'SBI тет-а-тет с каждым: факт → последствие → «Что случилось?»',s:2,type:'good',fb:'Недопонимание устранено. К вечеру работают нормально.',tool:'SBI + открытые вопросы',xp:30,oee:0.04,mood:12},{t:'Не вмешиваться — сами разберутся',s:0,type:'bad',fb:'Через три дня один попросился перевестись.',tool:'Попустительство',xp:0,oee:-0.03,mood:-20}]},
+  {id:'authority',time:288,x:MPAIRS[0].opX,y:MPAIRS[0].opY,tag:'Авторитет · Влияние',title:'Резчик игнорирует смену формата раскроя',body:'Ты сказал перейти на 2300×1600 (9с/деталь). Резчик продолжает 1900×1230 (116с/деталь). «Я так три года делаю». Бригада смотрит.',skill:'authority',
+    opts:[{t:'Уступить — он опытный, может прав',s:0,type:'bad',fb:'Бригада: старшего можно игнорировать.',tool:'Потеря авторитета',xp:0,oee:-0.02,mood:-10},{t:'Тет-а-тет: показать данные из наших замеров (9с vs 116с/деталь)',s:2,type:'good',fb:'Увидел цифры — согласился. Авторитет сохранён.',tool:'Влияние через данные',xp:35,oee:0.05,mood:5},{t:'Пожаловаться начальнику участка',s:0,type:'bad',fb:'Бригада решила: старший — слабак.',tool:'Эскалация без попытки',xp:3,oee:0,mood:-20},{t:'Жёстко при всех: «Я сказал — выполняй»',s:1,type:'neu',fb:'Выполнил. Затаил обиду. Саботаж по-тихому.',tool:'Авторитарный стиль',xp:10,oee:0.01,mood:-15}]},
+  {id:'lunch',time:220,x:300,y:348,tag:'Планирование · СОП п.4.2',title:'До обеда 10 мин — продукция не перемещена',body:'СОП п.4.2: за 10 минут до обеда переместить пачки в зону отгрузки. Сейчас 12:50. Пачки стоят у станков.',skill:'task',
+    opts:[{t:'Делегировать Упаковщику 1 с уровнем 3: «Реши сам, скажи мне потом»',s:2,type:'good',fb:'Справился. Вырос. Ты успел на обед.',tool:'Делегирование уровень 3',xp:28,oee:0.02,mood:8},{t:'4W1H обоим упаковщикам: «К 13:00 переместить все пачки в зону OZON/WB»',s:2,type:'good',fb:'Успели. Следующая смена нашла чистые места.',tool:'4W1H + дедлайн',xp:25,oee:0.02,mood:5},{t:'Самому начать перемещать',s:0,type:'bad',fb:'Бригада ушла на обед. Ты опоздал.',tool:'Старший работает вместо управления',xp:5,oee:0,mood:-5},{t:'Оставить на после обеда',s:0,type:'bad',fb:'Следующая смена с претензиями. Отгрузка -20 мин.',tool:'Нарушение СОП п.4.2',xp:3,oee:-0.02,mood:-8}]},
+  {id:'task',time:140,x:PACK[0].opX,y:PACK[0].opY,tag:'Постановка задачи · 4W1H',title:'Упаковщик не знает план на сегодня',body:'Упаковщик 1: «Что сначала — OZON или WB? Сколько в пачке? Куда этикетку?» Вторая смена. Задача в начале смены не поставлена.',skill:'task',
+    opts:[{t:'«Спроси у другого упаковщика»',s:0,type:'neu',fb:'Получил неверный приоритет. Не тот заказ.',tool:'Делегирование без контроля',xp:5,oee:-0.02,mood:-5},{t:'«Смотри в СОП — там всё написано»',s:0,type:'bad',fb:'Час искал нужную страницу. Потеря времени.',tool:'Нет конкретики',xp:3,oee:-0.03,mood:-10},{t:'Confirm back: объяснить + «Повтори что будешь делать»',s:2,type:'good',fb:'Повторил правильно. Работает без ошибок весь день.',tool:'4W1H + confirm back',xp:30,oee:0.04,mood:10},{t:'4W1H: «OZON первым, по 50шт, к 13:00 — 300 штук, этикетка на пласть»',s:2,type:'good',fb:'Ни одного вопроса за смену.',tool:'4W1H: Что, Кто, Когда, Как проверим',xp:25,oee:0.03,mood:8}]},
+  {id:'debrief',time:425,x:150,y:410,tag:'Разбор смены · Сбор информации',title:'Конец смены — как проводишь разбор?',body:'138 листов из 150. Смена сложная. Команда устала. 5 минут на итог.',skill:'task',
+    opts:[{t:'Не разбирать — все устали, завтра новый день',s:0,type:'bad',fb:'Завтра те же 138. Цикл повторяется.',tool:'Нет культуры улучшений',xp:0,oee:-0.02,mood:0},{t:'Воронка вопросов: «Что мешало сегодня? По очереди с начала смены»',s:2,type:'good',fb:'Нашли 3 причины. Завтра исправим.',tool:'Открытые вопросы + воронка',xp:30,oee:0.03,mood:8},{t:'«Почему не выполнили план? Кто виноват?»',s:0,type:'bad',fb:'Все замолчали. Страх. Ничего не узнал.',tool:'Закрытый обвиняющий вопрос',xp:5,oee:-0.01,mood:-15},{t:'Посмотреть данные станков самому и сделать вывод',s:1,type:'neu',fb:'Часть причин. Человеческий фактор не в данных.',tool:'Данные без людей = неполная картина',xp:15,oee:0.01,mood:0}]},
+];
+G.scheduled=[...EVENTS];
+
+// ============================================================
+// JOYSTICK
+// ============================================================
+let joyActive=false,joyDX=0,joyDY=0;
+const joyZone=document.getElementById('joy-zone');
+const joyKnob=document.getElementById('joy-knob');
+const JR=40;
+function getJoyXY(e){
+  const t=e.touches[0];
+  const r=joyZone.getBoundingClientRect();
+  return{x:t.clientX-r.left-50,y:t.clientY-r.top-50};
+}
+joyZone.addEventListener('touchstart',e=>{e.preventDefault();joyActive=true;joyKnob.classList.add('active');},{passive:false});
+joyZone.addEventListener('touchmove',e=>{
+  e.preventDefault();
+  if(!joyActive)return;
+  const p=getJoyXY(e);
+  const d=Math.hypot(p.x,p.y),cl=Math.min(d,JR),a=Math.atan2(p.y,p.x);
+  joyKnob.style.transform=`translate(calc(-50% + ${Math.cos(a)*cl}px),calc(-50% + ${Math.sin(a)*cl}px))`;
+  joyDX=Math.cos(a)*cl/JR;joyDY=Math.sin(a)*cl/JR;
+},{passive:false});
+joyZone.addEventListener('touchend',e=>{
+  e.preventDefault();joyActive=false;joyDX=0;joyDY=0;
+  joyKnob.style.transform='translate(-50%,-50%)';joyKnob.classList.remove('active');
+},{passive:false});
+
+// ============================================================
+// GAME LOGIC
+// ============================================================
+function openEvent(ev){
+  G.eventActive=true;G.skillMax[ev.skill]+=2;
+  document.getElementById('etag').textContent=ev.tag;
+  document.getElementById('etitle').textContent=ev.title;
+  document.getElementById('ebody').textContent=ev.body;
+  const eoEl=document.getElementById('eopts');eoEl.innerHTML='';
+  ev.opts.forEach((o,i)=>{
+    const b=document.createElement('button');
+    b.className='eopt';
+    b.textContent=String.fromCharCode(65+i)+'. '+o.t;
+    b.addEventListener('touchend',e=>{e.preventDefault();e.stopPropagation();resolveEvent(ev,o);},{passive:false});
+    b.addEventListener('click',()=>resolveEvent(ev,o));
+    eoEl.appendChild(b);
+  });
+  document.getElementById('event-sheet').style.display='flex';
+}
+function resolveEvent(ev,opt){
+  document.getElementById('event-sheet').style.display='none';
+  G.resolved.add(ev.id);G.activeEvents=G.activeEvents.filter(e=>e.id!==ev.id);
+  G.eventActive=false;
+  G.oee=Math.max(0.3,Math.min(1.0,G.oee+(opt.oee||0)));
+  G.mood=Math.max(0,Math.min(100,G.mood+(opt.mood||0)));
+  G.xp+=opt.xp||0;G.skillScores[ev.skill]+=opt.s;
+  checkLevel();updateHUD();showResult(opt);
+  setLog(fmtTime(G.time)+' '+ev.tag.split('·')[0].trim()+' '+(opt.type==='good'?'✓':opt.type==='bad'?'✗':'~'));
+}
+function showResult(opt){
+  G.resultShowing=true;
+  const card=document.getElementById('result-card');
+  card.className=opt.type;
+  const icons={good:'✅',bad:'❌',neu:'⚠️'};
+  const titles={good:'Правильное решение!',bad:'Есть лучший вариант',neu:'Рабочее решение'};
+  document.getElementById('r-icon').textContent=icons[opt.type];
+  document.getElementById('r-title').textContent=titles[opt.type];
+  document.getElementById('r-body').textContent=opt.fb;
+  const rx=document.getElementById('r-xp');rx.className='r-xp '+opt.type;
+  rx.textContent=`+${opt.xp} XP · ОЕЕ ${opt.oee>=0?'+':''}${Math.round((opt.oee||0)*100)}%`;
+  document.getElementById('r-tool').textContent='Инструмент: '+opt.tool;
+  document.getElementById('result-overlay').style.display='flex';
+}
+function closeResult(){
+  document.getElementById('result-overlay').style.display='none';
+  G.resultShowing=false;
+}
+function tryInteract(){
+  if(G.eventActive||G.resultShowing)return;
+  const ev=G.activeEvents.find(ev=>!G.resolved.has(ev.id)&&Math.hypot(player.x-ev.x,player.y-ev.y)<70);
+  if(ev)openEvent(ev);
+}
+function checkLevel(){
+  const lvls=[{xp:0,n:'Рабочий'},{xp:60,n:'Ст.опер.'},{xp:150,n:'Уверенный'},{xp:280,n:'Лидер'}];
+  for(let i=lvls.length-1;i>=0;i--){
+    if(G.xp>=lvls[i].xp){G.level=i+1;document.getElementById('hlvl').textContent=`Ур.${G.level}`;break;}
+  }
+}
+function setLog(t){G.logText=t;document.getElementById('glog-t').textContent=t;}
+function fmtTime(m){return`${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;}
+function updateHUD(){
+  const oee=Math.round(G.oee*100);
+  const oe=document.getElementById('hoee');oe.textContent=oee+'%';oe.className='hv '+(oee>=70?'g':oee>=55?'w':'r');
+  document.getElementById('hoee-f').style.width=oee+'%';
+  document.getElementById('hoee-f').style.background=oee>=70?'#22c55e':oee>=55?'#f59e0b':'#E8192C';
+  document.getElementById('hsh').textContent=G.sheets+'/150';
+  document.getElementById('hxp').textContent=G.xp;
+  const mo=document.getElementById('hmood');
+  mo.textContent=G.mood>=70?'😊':G.mood>=40?'😐':'😟';
+  mo.className='hv '+(G.mood>=70?'g':G.mood>=40?'w':'r');
+  document.getElementById('htimer').textContent=fmtTime(G.time);
+}
+
+// ============================================================
+// DRAW
+// ============================================================
+function drawSprite(x,y,role,moving){
+  const px=wx(x),py=wy(y),sc=ws(2.2);
+  const bob=moving?Math.sin(Date.now()/150)*sc*1.5:0;
+  const c={player:{b:'#E8192C',h:'#fff'},rezchik:{b:'#378ADD',h:'#f59e0b'},upak:{b:'#f59e0b',h:'#378ADD'}}[role]||{b:'#378ADD',h:'#f59e0b'};
+  ctx.fillStyle='#0004';ctx.beginPath();ctx.ellipse(px,py+sc*6,sc*4,sc*1.5,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle=c.b;
+  ctx.fillRect(px-sc*2,py+bob,sc*4,sc*4);
+  ctx.fillRect(px-sc*3.5,py+bob-sc*1,sc*1.5,sc*3);
+  ctx.fillRect(px+sc*2,py+bob-sc*1,sc*1.5,sc*3);
+  if(moving){ctx.fillRect(px-sc*2,py+bob+sc*4,sc*1.5,sc*3.5);ctx.fillRect(px+sc*0.5,py+bob+sc*4,sc*1.5,sc*3.5);}
+  else ctx.fillRect(px-sc*1.5,py+bob+sc*4,sc*3,sc*3.5);
+  ctx.fillStyle='#FDBCB4';ctx.beginPath();ctx.arc(px,py+bob-sc*2.5,sc*2.8,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#333';ctx.fillRect(px-sc*1.2,py+bob-sc*3.2,sc*0.8,sc*0.8);ctx.fillRect(px+sc*0.4,py+bob-sc*3.2,sc*0.8,sc*0.8);
+  if(role==='player'){
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.ellipse(px,py+bob-sc*5,sc*3,sc*1.4,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#E8192C';ctx.fillRect(px-sc*2.8,py+bob-sc*5,sc*5.6,sc*1.2);
+    ctx.fillStyle='#fff';ctx.font=`bold ${sc*2}px 'Courier New'`;ctx.textAlign='center';ctx.fillText('СТ',px,py+bob-sc*4.2);
+  } else {
+    ctx.fillStyle=c.h;ctx.beginPath();ctx.arc(px,py+bob-sc*5.2,sc*2.4,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(0,0,0,0.2)';ctx.beginPath();ctx.arc(px,py+bob-sc*5.2,sc*2.4,Math.PI,0);ctx.fill();
+  }
+}
+function drawMachine(m){
+  ctx.fillStyle=m.on?'#26264a':'#1a1a2e';ctx.strokeStyle=m.on?'#4444aa':'#2a2a4a';ctx.lineWidth=ws(1.2);
+  ctx.beginPath();ctx.roundRect(wx(m.x),wy(m.y),wx(m.x+m.w)-wx(m.x),wy(m.y+m.h)-wy(m.y),ws(3));ctx.fill();ctx.stroke();
+  const bx=wx(m.x+4),by2=wy(m.y+5),bw=wx(m.x+m.w-4)-wx(m.x+4),bh=wy(m.y+9)-wy(m.y+5);
+  ctx.fillStyle='#0a0a0a';ctx.fillRect(bx,by2,bw,bh);
+  ctx.fillStyle=m.on?'#22c55e':'#E8192C';ctx.fillRect(bx,by2,bw*m.prog,bh);
+  ctx.fillStyle=m.on?'#22c55e':'#E8192C';ctx.beginPath();ctx.arc(wx(m.x+m.w-5),wy(m.y+5),ws(3),0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#bbb';ctx.font=`${ws(5.5)}px 'Courier New'`;ctx.textAlign='center';
+  ctx.fillText(`${m.id}`,wx(m.x+m.w/2),wy(m.y+m.h/2+3));
+  [m.tT,m.tB].forEach(t=>{
+    ctx.fillStyle='#101e10';ctx.strokeStyle='#1a341a';ctx.lineWidth=ws(0.8);
+    ctx.beginPath();ctx.roundRect(wx(t.x),wy(t.y),wx(t.x+t.w)-wx(t.x),wy(t.y+t.h)-wy(t.y),ws(2));ctx.fill();ctx.stroke();
+  });
+  const bg=m.bag;ctx.fillStyle='#081208';ctx.strokeStyle='#0e280e';ctx.lineWidth=ws(0.8);
+  ctx.beginPath();ctx.roundRect(wx(bg.x),wy(bg.y),wx(bg.x+bg.w)-wx(bg.x),wy(bg.y+bg.h)-wy(bg.y),ws(2));ctx.fill();ctx.stroke();
+  ctx.fillStyle='#3a7a3a';ctx.font=`${ws(4)}px 'Courier New'`;ctx.textAlign='center';ctx.fillText('б',wx(bg.x+bg.w/2),wy(bg.y+bg.h/2+1));
+}
+function drawPallet(p){
+  const c1=MAT[p.c1]||'#888',c2=p.c2?MAT[p.c2]:null;
+  ctx.fillStyle='#3a2006';ctx.fillRect(wx(p.x-1),wy(p.y+p.h-4),wx(p.x+p.w+1)-wx(p.x-1),wy(p.y+p.h)-wy(p.y+p.h-4));
+  if(c2){
+    ctx.fillStyle=c1;ctx.fillRect(wx(p.x),wy(p.y+p.h/2),wx(p.x+p.w)-wx(p.x),wy(p.y+p.h-4)-wy(p.y+p.h/2));
+    ctx.fillStyle=c2;ctx.fillRect(wx(p.x),wy(p.y),wx(p.x+p.w)-wx(p.x),wy(p.y+p.h/2)-wy(p.y));
+    ctx.strokeStyle='rgba(0,0,0,0.15)';ctx.lineWidth=ws(0.5);
+    ctx.beginPath();ctx.moveTo(wx(p.x),wy(p.y+p.h/2));ctx.lineTo(wx(p.x+p.w),wy(p.y+p.h/2));ctx.stroke();
+  } else {
+    ctx.fillStyle=c1;ctx.fillRect(wx(p.x),wy(p.y),wx(p.x+p.w)-wx(p.x),wy(p.y+p.h-4)-wy(p.y));
+  }
+  ctx.strokeStyle='rgba(0,0,0,0.18)';ctx.lineWidth=ws(0.8);
+  ctx.strokeRect(wx(p.x),wy(p.y),wx(p.x+p.w)-wx(p.x),wy(p.y+p.h-4)-wy(p.y));
+  const light=(c1==='#f0f0f0'||c1==='#999'||c1==='#ffb6c1'||c1==='#87ceeb');
+  ctx.fillStyle=light?'#222':'#eee';
+  ctx.font=`bold ${ws(4)}px 'Courier New'`;ctx.textAlign='center';
+  const midY=c2?p.y+p.h*0.75:p.y+p.h/2;
+  ctx.fillText(p.c1+(p.c2?'/'+p.c2:''),wx(p.x+p.w/2),wy(midY-4));
+  ctx.font=`${ws(3.6)}px 'Courier New'`;ctx.fillText(p.sz,wx(p.x+p.w/2),wy(midY+3));
+}
+function drawEventMarker(ev){
+  if(G.resolved.has(ev.id))return;
+  const pulse=0.5+0.5*Math.sin(Date.now()/270);
+  const ex=wx(ev.x),ey=wy(ev.y);
+  ctx.strokeStyle=`rgba(245,158,11,${pulse*0.5})`;ctx.lineWidth=ws(5);
+  ctx.beginPath();ctx.arc(ex,ey-ws(30),ws(40)*pulse,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle=`rgba(245,158,11,${0.85+0.15*pulse})`;
+  ctx.beginPath();ctx.arc(ex,ey-ws(30),ws(28),0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#111';ctx.font=`bold ${ws(32)}px sans-serif`;ctx.textAlign='center';ctx.fillText('!',ex,ey-ws(18));
+}
+
+function draw(){
+  const cw=canvas.width,ch=canvas.height;
+  ctx.fillStyle='#161612';ctx.fillRect(0,0,cw,ch);
+  ctx.strokeStyle='#1c1c18';ctx.lineWidth=0.4;
+  for(let x=0;x<cw;x+=wx(50)){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,ch);ctx.stroke();}
+  for(let y=0;y<ch;y+=wy(50)){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(cw,y);ctx.stroke();}
+  // Zone labels
+  ctx.fillStyle='#252520';ctx.font=`${ws(5.5)}px 'Courier New'`;ctx.textAlign='left';
+  ctx.fillText('ПАЛЛЕТЫ С ЛИСТАМИ',wx(5),wy(90));
+  ctx.fillText('СТАНКИ 1–8',wx(5),wy(98));
+  ctx.fillText('2-й РЯД ОБОРУДОВАНИЯ',wx(5),wy(262));
+  ctx.fillText('ЗОНА УПАКОВКИ',wx(5),wy(366));
+  // Draw pallets
+  PALLETS.forEach(p=>drawPallet(p));
+  // Machine pairs
+  MPAIRS.forEach(pair=>{
+    drawMachine(pair.m1);drawMachine(pair.m2);
+    drawSprite(pair.opX,pair.opY,'rezchik',false);
+    ctx.fillStyle='#3e3a36';ctx.font=`${ws(4.8)}px 'Courier New'`;ctx.textAlign='center';
+    ctx.fillText(pair.nm,wx(pair.opX),wy(pair.opY+13));
+  });
+  // Trash bin
+  ctx.fillStyle='#06182e';ctx.strokeStyle='#0e3a6a';ctx.lineWidth=ws(1);
+  ctx.beginPath();ctx.roundRect(wx(TRASH.x),wy(TRASH.y),wx(TRASH.x+TRASH.w)-wx(TRASH.x),wy(TRASH.y+TRASH.h)-wy(TRASH.y),ws(2));ctx.fill();ctx.stroke();
+  ctx.fillStyle='#4a9aca';ctx.font=`${ws(4)}px 'Courier New'`;ctx.textAlign='center';ctx.fillText('бэги',wx(TRASH.x+TRASH.w/2),wy(TRASH.y+TRASH.h/2+2));
+  // Row 2
+  ROW2.forEach(obj=>{
+    let fc='#181830',sc2='#2e2e5a';
+    if(obj.type==='lam'){fc='#051005';sc2='#0a300a';}
+    if(obj.type==='uv'){fc='#0e041a';sc2='#280e50';}
+    if(obj.type==='plastic'){fc='#051008';sc2='#0a301a';}
+    if(obj.type==='st9'){fc='#100a1e';sc2='#301850';}
+    ctx.fillStyle=fc;ctx.strokeStyle=sc2;ctx.lineWidth=ws(1.2);
+    ctx.beginPath();ctx.roundRect(wx(obj.x),wy(obj.y),wx(obj.x+obj.w)-wx(obj.x),wy(obj.y+obj.h)-wy(obj.y),ws(3));ctx.fill();ctx.stroke();
+    if(obj.type==='uv'){ctx.fillStyle='#3e0e8044';ctx.fillRect(wx(obj.x+3),wy(obj.y+3),wx(obj.x+obj.w-3)-wx(obj.x+3),wy(obj.y+obj.h-3)-wy(obj.y+3));}
+    ctx.fillStyle='#aaa';ctx.font=`${ws(5.5)}px 'Courier New'`;ctx.textAlign='center';
+    const lines=obj.label.split('\n');lines.forEach((l,i)=>ctx.fillText(l,wx(obj.x+obj.w/2),wy(obj.y+obj.h/2+(i-lines.length/2+0.5)*9)));
+    if(obj.type==='st9'){
+      [obj.tL,obj.tR].forEach(t=>{ctx.fillStyle='#101e10';ctx.strokeStyle='#1a341a';ctx.lineWidth=ws(0.8);ctx.beginPath();ctx.roundRect(wx(t.x),wy(t.y),wx(t.x+t.w)-wx(t.x),wy(t.y+t.h)-wy(t.y),ws(2));ctx.fill();ctx.stroke();});
+      drawSprite(obj.opX,obj.opY,'rezchik',false);
+    }
+  });
+  // Pack tables
+  PACK.forEach(t=>{
+    ctx.fillStyle='#140e04';ctx.strokeStyle='#301e08';ctx.lineWidth=ws(1.2);
+    ctx.beginPath();ctx.roundRect(wx(t.x),wy(t.y),wx(t.x+t.w)-wx(t.x),wy(t.y+t.h)-wy(t.y),ws(3));ctx.fill();ctx.stroke();
+    ctx.fillStyle='#ccc';ctx.font=`${ws(5.5)}px 'Courier New'`;ctx.textAlign='center';ctx.fillText(t.label,wx(t.x+t.w/2),wy(t.y+t.h/2+3));
+    if(t.opX)drawSprite(t.opX,t.opY,'upak',false);
+  });
+  PALLOUT.forEach(t=>{
+    ctx.fillStyle='#100c04';ctx.strokeStyle='#201808';ctx.lineWidth=ws(1);
+    ctx.beginPath();ctx.roundRect(wx(t.x),wy(t.y),wx(t.x+t.w)-wx(t.x),wy(t.y+t.h)-wy(t.y),ws(3));ctx.fill();ctx.stroke();
+    ctx.fillStyle='#666';ctx.font=`${ws(5.5)}px 'Courier New'`;ctx.textAlign='center';ctx.fillText(t.label,wx(t.x+t.w/2),wy(t.y+t.h/2+3));
+  });
+  // Event markers
+  G.activeEvents.forEach(ev=>drawEventMarker(ev));
+  // Player
+  const moving=joyActive&&(Math.abs(joyDX)>0.1||Math.abs(joyDY)>0.1);
+  drawSprite(player.x,player.y,'player',moving);
+  // Near hint
+  const near=G.activeEvents.find(ev=>!G.resolved.has(ev.id)&&Math.hypot(player.x-ev.x,player.y-ev.y)<70);
+  document.getElementById('near-hint').style.display=(near&&!G.eventActive&&!G.resultShowing)?'block':'none';
+}
+
+// ============================================================
+// GAME LOOP
+// ============================================================
+let last=0,gacc=0;
+function loop(ts){
+  if(!G.running)return;
+  const dt=Math.min((ts-last)/1000,0.1);last=ts;
+  if(!G.eventActive&&!G.resultShowing){
+    // Movement - no diagonal
+    if(joyActive&&(Math.abs(joyDX)>0.08||Math.abs(joyDY)>0.08)){
+      let dx=joyDX,dy=joyDY;
+      if(Math.abs(dx)>=Math.abs(dy))dy=0;else dx=0;
+      const nx=player.x+dx*player.speed*dt,ny=player.y+dy*player.speed*dt;
+      if(inCorridor(nx,player.y)&&nx>10&&nx<WW-10)player.x=nx;
+      if(inCorridor(player.x,ny)&&ny>10&&ny<WH-10)player.y=ny;
+    }
+    // Time
+    gacc+=dt*G.speed;
+    if(gacc>=1){
+      G.time+=Math.floor(gacc);gacc-=Math.floor(gacc);
+      G.sheets=Math.min(170,Math.floor((G.time-8*60)*G.oee*0.28));
+      updateHUD();
+    }
+    // Machine anim
+    MPAIRS.forEach(p=>{
+      p.m1.prog+=dt*G.speed*0.1;if(p.m1.prog>1)p.m1.prog=0;
+      p.m2.prog+=dt*G.speed*0.1;if(p.m2.prog>1)p.m2.prog=0;
+    });
+    // Schedule events - одно за раз, следующее только после решения текущего
+    const el=G.time-8*60;
+    const hasActive=G.activeEvents.some(e=>!G.resolved.has(e.id));
+    if(!hasActive){
+      let added=false;
+      G.scheduled=G.scheduled.filter(ev=>{
+        if(!added&&el>=ev.time&&!G.resolved.has(ev.id)){
+          if(!G.activeEvents.find(a=>a.id===ev.id)){
+            G.activeEvents.push(ev);setLog(fmtTime(G.time)+' Событие!');
+            added=true;
+          }
+          return false;
+        }
+        return true;
+      });
+    }
+    if(G.time>=G.timeEnd){endGame();return;}
+  }
+  draw();requestAnimationFrame(loop);
+}
+
+// ============================================================
+// FINAL SCREEN
+// ============================================================
+function endGame(){
+  G.running=false;
+  const oee=Math.round(G.oee*100);
+  document.getElementById('final-screen').style.display='block';
+  document.getElementById('fc-title').textContent=oee>=70?'🏆 Смена выполнена!':'📋 Смена завершена';
+  document.getElementById('fc-sub').textContent=`${playerName} · ${oee>=70?'ОЕЕ выше 70%!':'Есть куда расти'}`;
+  document.getElementById('fc-sh').textContent=G.sheets;
+  document.getElementById('fc-oee').textContent=oee+'%';
+  document.getElementById('fc-xp').textContent=G.xp+' XP';
+  const lvls=['','Рабочий','Ст. оператор','Уверенный','Лидер'];
+  document.getElementById('fc-lvl').textContent=lvls[G.level]||'Ур.'+G.level;
+  const sC={task:'#378ADD',people:'#22c55e',loss:'#f59e0b',authority:'#E8192C'};
+  const sN={task:'Постановка задач',people:'Работа с людьми',loss:'Видение потерь',authority:'Авторитет'};
+  const sD={task:'4W1H, делегирование',people:'SBI, GROW, конфликты',loss:'Потери, 5С, запасы',authority:'Влияние, авторитет'};
+  const skEl=document.getElementById('fc-skills');skEl.innerHTML='';
+  const all=Object.entries(G.skillScores).map(([k,v])=>({k,v,max:Math.max(G.skillMax[k],2),pct:G.skillMax[k]?Math.round(v/G.skillMax[k]*100):0,noData:G.skillMax[k]===0}));
+  all.forEach(s=>{
+    skEl.innerHTML+=`<div class="skill-row"><div class="sk-name">${sN[s.k]}</div><div class="sk-bar"><div class="sk-fill" style="width:${s.noData?0:s.pct}%;background:${sC[s.k]}"></div></div><div class="sk-pct">${s.noData?'—':s.pct+'%'}</div></div>`;
+  });
+  const verd=[[0,60,'Много решений интуитивно. Нормальная стартовая точка.'],[61,130,'Хороший старт. Углубляй 4W1H и SBI — быстрый результат.'],[131,220,'Уверенная работа. Работай над системностью.'],[221,999,'Системный лидер. Следующий шаг — обучать других.']];
+  const v=verd.find(([lo,hi])=>G.xp>=lo&&G.xp<=hi);
+  document.getElementById('fc-verdict').textContent=v?v[2]:'';
+  const sorted=all.filter(s=>!s.noData).sort((a,b)=>b.pct-a.pct);
+  const strong=sorted[0],grow=sorted[sorted.length-1];
+  document.getElementById('fc-str').innerHTML=strong?`<b>${sN[strong.k]} — ${strong.pct}%</b><br>Точка опоры. Опирайся на это в работе с командой.`:'Пройди больше событий для анализа.';
+  document.getElementById('fc-grow').innerHTML=(grow&&grow.k!==strong?.k)?`<b>${sN[grow.k]} — ${grow.pct}%</b><br>Наибольший потенциал роста. Разберём на обучении.`:'Навыки развиты равномерно.';
+  const rM={task:'4W1H, confirm back, делегирование, воронка вопросов.',people:'SBI, GROW, ситуационное лидерство, открытые вопросы.',loss:'Перекрываемое время (СОП п.2), 5С, 5 Почему, запасы.',authority:'Влияние через данные, тет-а-тет разговор, стиль лидерства.'};
+  const weak=sorted.length?sorted[sorted.length-1].k:'task';
+  document.getElementById('fc-rec').innerHTML=`Фокус: <b>${sN[weak]}</b><br>${rM[weak]}`;
+}
+
+function sendResults(){
+  const btn=document.getElementById('send-btn'),st=document.getElementById('send-status');
+  btn.disabled=true;btn.textContent='Отправка...';
+  const sN={task:'Постановка задач',people:'Работа с людьми',loss:'Видение потерь',authority:'Авторитет'};
+  const lvls=['','Рабочий','Ст. оператор','Уверенный','Системный лидер'];
+  let skills='';Object.entries(G.skillScores).forEach(([k,v])=>{const p=G.skillMax[k]?Math.round(v/G.skillMax[k]*100):0;skills+=`${sN[k]}: ${p}%\n`;});
+  const body=`ФИО: ${playerName}\nДата: ${new Date().toLocaleDateString('ru-RU')}\n\nОЕЕ: ${Math.round(G.oee*100)}%\nЛистов: ${G.sheets}/150\nXP: ${G.xp}\nУровень: ${lvls[G.level]}\n\nНавыки:\n${skills}\nНастроение команды: ${G.mood}/100`;
+  fetch('https://formspree.io/f/xbdbanzw',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({name:playerName,message:body,_subject:`BOXSTORE: ${playerName}`})})
+  .then(r=>{st.textContent=r.ok?'✓ Отправлено на krylov.e@diid.tech':'Ошибка. Сохрани скриншот.';st.style.color=r.ok?'#22c55e':'#E8192C';btn.disabled=false;btn.textContent='📧 Отправить повторно';})
+  .catch(()=>{st.textContent='Нет сети. Сохрани скриншот.';st.style.color='#E8192C';btn.disabled=false;});
+}
+
+// ============================================================
+// START
+// ============================================================
+function startGame(){
+  const inp=document.getElementById('name-inp');
+  const name=(inp.value||'').trim();
+  if(!name){
+    document.getElementById('name-err').style.display='block';
+    return;
+  }
+  playerName=name;
+  document.getElementById('name-err').style.display='none';
+  document.getElementById('start-screen').style.display='none';
+  document.getElementById('hud').style.display='flex';
+  document.getElementById('game-area').style.display='block';
+  resizeCanvas();
+  updateHUD();
+  G.running=true;
+  last=performance.now();
+  requestAnimationFrame(loop);
+}
+
+function toggleSpeed(){
+  G.speed=G.speed===3?6:G.speed===6?1:3;
+  const t=G.speed===1?'▶ x1':G.speed===3?'▶▶ x3':'▶▶▶ x6';
+  document.getElementById('hspd').textContent=t;
+  document.getElementById('spd-mid').textContent=t;
+}
+
+// Wire up ALL buttons with both click and touchend
+function wireBtn(id,fn){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.addEventListener('click',fn);
+  el.addEventListener('touchend',e=>{e.preventDefault();fn();},{passive:false});
+}
+wireBtn('start-btn',startGame);
+wireBtn('r-cont',closeResult);
+wireBtn('send-btn',sendResults);
+wireBtn('restart-btn',()=>location.reload());
+wireBtn('act-btn',tryInteract);
+wireBtn('hspd',toggleSpeed);
+wireBtn('spd-mid',toggleSpeed);
+
+// Also handle canvas tap for event markers
+document.getElementById('gc').addEventListener('touchend',e=>{
+  if(G.eventActive||G.resultShowing)return;
+  const r=canvas.getBoundingClientRect();
+  const t=e.changedTouches[0];
+  const mx=(t.clientX-r.left)*WW/canvas.width;
+  const my=(t.clientY-r.top)*WH/canvas.height;
+  const ev=G.activeEvents.find(ev=>!G.resolved.has(ev.id)&&Math.hypot(mx-ev.x,my-ev.y)<55);
+  if(ev)openEvent(ev);
+},{passive:true});
+</script>
+</body>
+</html>
