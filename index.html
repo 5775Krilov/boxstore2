@@ -60,23 +60,19 @@ body{width:100%;height:100%;overflow:hidden;position:fixed;top:0;left:0;right:0;
 .mbrand .bx sup{font-size:8px;top:-6px}
 .mbrand .acad{color:#E8A06A;font-size:9px;letter-spacing:4px;text-transform:uppercase;margin-top:4px;font-weight:600}
 /* карточка контента */
-.mcard{position:relative;z-index:2;background:rgba(20,16,14,0.93);border:2px solid #E8A06A;border-radius:6px;padding:10px 11px;width:100%;max-width:330px;display:flex;flex-direction:column;align-items:center;box-shadow:5px 5px 0 rgba(0,0,0,.3)}
+.mcard{position:relative;z-index:2;background:rgba(20,16,14,0.93);border:2px solid #E8A06A;border-radius:6px;padding:9px 11px;width:100%;max-width:330px;display:flex;flex-direction:column;align-items:center;box-shadow:5px 5px 0 rgba(0,0,0,.3)}
 .mcard h1{font-size:14px;margin:0 0 2px}
-.mcard .sub{font-size:9px;line-height:1.4;margin-bottom:7px}
-.mcard .stats{margin-bottom:7px;gap:5px}
-.mcard .stat{padding:4px}
-.mcard .stat .n{font-size:13px}
-.mcard .stat .l{font-size:7px}
+.mcard .sub{font-size:9.5px;line-height:1.35;margin-bottom:6px;text-align:center}
+.mcard .statline{font-size:9px;color:#7a6f68;margin-bottom:7px;letter-spacing:.5px}
+.mcard .grp-label{font-size:11px;font-weight:600;color:#E8A06A;margin:4px 0 5px;text-align:center;letter-spacing:1px}
 .mcard input[type=text]{margin-bottom:5px;padding:8px 10px;font-size:15px}
-.mcard .grp-btn{padding:6px 4px;font-size:11px}
-.mcard #group-grid{gap:5px}
+.mcard .grp-btn{padding:6px 3px;font-size:11px}
 .mcard .btn-main{padding:9px;min-height:40px;font-size:14px}
 .mcard .err{font-size:9px;margin-bottom:4px}
-#start-screen{justify-content:flex-start;padding-top:28px;padding-bottom:20px}
+#start-screen{justify-content:flex-start;padding-top:18px;padding-bottom:18px}
 #start-screen .logo{display:none}
 #start-screen h1{color:#f5f0ec}
 #start-screen .sub{color:#9a8f88}
-#start-screen .stat{background:#241e1a;border:1px solid #3a322c}
 
 /* START SCREEN */
 .logo{background:#D96A4A;color:#fff;font-weight:700;font-size:18px;letter-spacing:3px;padding:6px 16px;border-radius:4px;margin-bottom:16px;display:inline-block}
@@ -203,16 +199,12 @@ canvas{display:block;width:100%;height:100%;touch-action:none;-webkit-user-selec
   </div>
   <div class="mcard">
   <h1>Симулятор смены</h1>
-  <div class="sub">Ты — старший оператор участка раскроя.<br>Управляй джойстиком, реагируй на события.<br>Цель: 150 листов, ОЕЕ ≥ 70%</div>
-  <div class="stats">
-    <div class="stat"><div class="n">15</div><div class="l">событий</div></div>
-    <div class="stat"><div class="n">4</div><div class="l">навыка</div></div>
-    <div class="stat"><div class="n">~15</div><div class="l">минут</div></div>
-  </div>
+  <div class="sub">Ты — старший оператор. Цель: 150 листов, ОЕЕ ≥ 70%</div>
+  <div class="statline">15 событий · 4 навыка · ~15 минут</div>
   <input type="text" id="name-inp" placeholder="Введи своё ФИО" maxlength="50" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false">
   <div class="err" id="name-err">Пожалуйста, введи ФИО</div>
-  <div style="font-size:13px;font-weight:600;color:#E8A06A;margin:14px 0 8px;text-align:center;letter-spacing:1px">ВЫБЕРИ СВОЮ ГРУППУ</div>
-  <div id="group-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px;width:100%">
+  <div class="grp-label">ВЫБЕРИ СВОЮ ГРУППУ</div>
+  <div id="group-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:5px;width:100%">
     <button class="grp-btn" data-group="Смена 1">Смена 1</button>
     <button class="grp-btn" data-group="Смена 2">Смена 2</button>
     <button class="grp-btn" data-group="Смена 3">Смена 3</button>
