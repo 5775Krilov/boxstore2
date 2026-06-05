@@ -55,20 +55,24 @@ body{width:100%;height:100%;overflow:hidden;position:fixed;top:0;left:0;right:0;
 .mfpipe.slow .msmoke.s3{animation:mpuff 5.4s ease-out infinite 3.8s}
 @keyframes mpuff{0%{opacity:0;transform:translateY(0) scale(.5)}15%{opacity:.85}100%{opacity:0;transform:translateY(-150px) scale(2.4)}}
 /* бренд BOXSTORE Академия */
-.mbrand{display:flex;flex-direction:column;align-items:center;margin-bottom:14px;position:relative;z-index:2}
-.mbrand .bx{background:#1a1a18;color:#fff;font-weight:700;font-size:22px;letter-spacing:3px;padding:7px 16px;font-family:'Arial Black','Arial',sans-serif;border:2px solid #E8A06A}
-.mbrand .bx sup{font-size:10px;top:-8px}
-.mbrand .acad{color:#E8A06A;font-size:12px;letter-spacing:6px;text-transform:uppercase;margin-top:6px;font-weight:600}
+.mbrand{display:flex;flex-direction:column;align-items:center;margin-bottom:8px;position:relative;z-index:2}
+.mbrand .bx{background:#1a1a18;color:#fff;font-weight:700;font-size:18px;letter-spacing:3px;padding:5px 13px;font-family:'Arial Black','Arial',sans-serif;border:2px solid #E8A06A}
+.mbrand .bx sup{font-size:9px;top:-7px}
+.mbrand .acad{color:#E8A06A;font-size:10px;letter-spacing:5px;text-transform:uppercase;margin-top:5px;font-weight:600}
 /* карточка контента */
-.mcard{position:relative;z-index:2;background:rgba(20,16,14,0.93);border:3px solid #E8A06A;border-radius:6px;padding:14px 14px;width:100%;max-width:360px;display:flex;flex-direction:column;align-items:center;box-shadow:6px 6px 0 rgba(0,0,0,.3)}
-.mcard h1{font-size:17px;margin:0 0 4px}
-.mcard .sub{font-size:11px;line-height:1.5;margin-bottom:10px}
-.mcard .stats{margin-bottom:10px}
-.mcard .stat{padding:7px}
-.mcard input[type=text]{margin-bottom:6px;padding:11px 12px}
-.mcard .grp-btn{padding:9px 6px;font-size:13px}
-.mcard .btn-main{padding:12px;min-height:46px;font-size:15px}
-#start-screen{justify-content:flex-start;padding-top:54px;padding-bottom:30px}
+.mcard{position:relative;z-index:2;background:rgba(20,16,14,0.93);border:2px solid #E8A06A;border-radius:6px;padding:12px 12px;width:100%;max-width:340px;display:flex;flex-direction:column;align-items:center;box-shadow:5px 5px 0 rgba(0,0,0,.3)}
+.mcard h1{font-size:15px;margin:0 0 3px}
+.mcard .sub{font-size:10px;line-height:1.45;margin-bottom:8px}
+.mcard .stats{margin-bottom:8px;gap:6px}
+.mcard .stat{padding:5px}
+.mcard .stat .n{font-size:15px}
+.mcard .stat .l{font-size:8px}
+.mcard input[type=text]{margin-bottom:5px;padding:9px 10px;font-size:15px}
+.mcard .grp-btn{padding:7px 5px;font-size:12px}
+.mcard #group-grid{gap:6px}
+.mcard .btn-main{padding:10px;min-height:42px;font-size:14px}
+.mcard .err{font-size:10px;margin-bottom:5px}
+#start-screen{justify-content:flex-start;padding-top:38px;padding-bottom:24px}
 #start-screen .logo{display:none}
 #start-screen h1{color:#f5f0ec}
 #start-screen .sub{color:#9a8f88}
@@ -397,20 +401,22 @@ const PALLOUT=[
 ];
 const TRASH={x:4,y:192,w:22,h:32};
 
-// Corridors — широкие проходы + боковые магистрали; столы упаковки и тело 2-го ряда защищены
+// Corridors — горизонтальные проходы-аисли + чистые вертикальные проходы строго в зазорах между станками
 const CORRIDORS=[
-  {x:0,y:84,w:WW,h:72},      // 84–156: верх и подход к 1-му ряду
-  {x:0,y:228,w:WW,h:40},     // 228–268: между 1-м и 2-м рядом
-  {x:0,y:330,w:WW,h:42},     // 330–372: между 2-м рядом и упаковкой
-  {x:0,y:424,w:WW,h:54},     // 424–478: проход упаковки ПОД столами
-  {x:0,y:84,w:52,h:288},     // левая магистраль (0–52, 84–372)
-  {x:WW-52,y:84,w:52,h:288}, // правая магистраль (548–600)
+  {x:0,y:84,w:WW,h:36},      // верхний проход (84–120)
+  {x:0,y:244,w:WW,h:26},     // между 1-м и 2-м рядом (244–270)
+  {x:0,y:330,w:WW,h:42},     // между 2-м рядом и упаковкой (330–372)
+  {x:0,y:424,w:WW,h:54},     // упаковка под столами (424–478)
 ];
-// широкие связки между парами 1-го ряда
-for(let p=0;p<3;p++){
-  const x=MPAIRS[p].m2.x+MPAIRS[p].m2.w;
-  CORRIDORS.push({x:x-6,y:120,w:(MPAIRS[p+1].m1.x-x)+12,h:252}); // 120–372
+// вертикальные проходы в зазорах 1-го ряда (между станками m1 и m2 — чисто)
+for(let p=0;p<4;p++){
+  const x=MPAIRS[p].m1.x+MPAIRS[p].m1.w; // правый край m1
+  CORRIDORS.push({x:x,y:118,w:24,h:152}); // 118–270, ширина зазора m1–m2
 }
+// вертикальные проходы в просветах 2-го ряда
+[[62,96],[154,185],[245,320]].forEach(g=>{
+  CORRIDORS.push({x:g[0],y:244,w:g[1]-g[0],h:128}); // 244–372
+});
 // спуски в зону упаковки через зазоры между столами
 [[0,20],[98,116],[194,212],[290,312],[400,412],[500,512],[576,600]].forEach(g=>{
   CORRIDORS.push({x:g[0],y:370,w:g[1]-g[0],h:58}); // 370–428
