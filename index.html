@@ -2,45 +2,108 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>BOXSTORE — Симулятор</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{width:100%;height:100%;overflow:hidden;background:#111;color:#f0f0ee;font-family:'Courier New',monospace;font-size:14px}
-body{display:flex;flex-direction:column}
+html{width:100%;height:100%;overflow:hidden;background:#111}
+body{width:100%;height:100%;overflow:hidden;position:fixed;top:0;left:0;right:0;bottom:0;color:#f0f0ee;font-family:'Courier New',monospace;font-size:14px;display:flex;flex-direction:column;-webkit-overflow-scrolling:none}
 
 /* SCREENS */
 .screen{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;background:#111;overflow-y:auto}
 .screen.hidden{display:none}
 
+/* пиксель-арт фон стартового экрана */
+#start-screen{overflow:hidden;
+  background:#5BA8D6;
+  background-image:linear-gradient(#5BA8D6 0%,#7CC0E8 55%,#8FD0F0 70%);
+  image-rendering:pixelated;}
+#start-screen::after{content:'';position:absolute;left:0;right:0;bottom:0;height:90px;z-index:0;
+  background:
+    repeating-linear-gradient(90deg,transparent 0 44px,#6E3220 44px 48px),
+    repeating-linear-gradient(0deg,#9B4A2F 0 26px,#6E3220 26px 30px),
+    linear-gradient(#7BB23E 0 14px,#6BA033 14px 20px,#9B4A2F 20px 100%);
+  box-shadow:inset 0 6px 0 #5C8A2A,inset 0 14px 0 #87C24A;}
+.mcloud{position:absolute;z-index:0;background:#fff;width:12px;height:12px;
+  box-shadow:12px 0 0 #fff,24px 0 0 #fff,-12px 0 0 #fff,0 -10px 0 #fff,12px -10px 0 #fff,6px -19px 0 #eef6fb,18px -19px 0 #eef6fb;
+  image-rendering:pixelated;will-change:transform;}
+.mcloud.m1{top:70px;animation:mdrift 30s linear infinite}
+.mcloud.m2{top:130px;opacity:.85;animation:mdrift 42s linear infinite;animation-delay:-15s}
+.mcloud.m3{top:40px;animation:mdrift 36s linear infinite;animation-delay:-24s}
+.mcloud.m4{top:180px;opacity:.8;animation:mdrift 48s linear infinite;animation-delay:-8s}
+@keyframes mdrift{from{transform:translateX(-40px) scale(1.3)}to{transform:translateX(110vw) scale(1.3)}}
+/* заводы по бокам (компактные под мобильный) */
+.mfactory{position:absolute;bottom:70px;z-index:1;image-rendering:pixelated}
+.mfactory.left{left:0;transform:scale(1.4);transform-origin:bottom left}
+.mfactory.right{right:0;transform:scale(1.4);transform-origin:bottom right}
+.mfbody{position:relative;width:70px;height:64px;background:#6B7280;border:3px solid #4B5563;box-shadow:0 4px 0 #374151}
+.mfbody.wide{width:96px;height:54px}
+.mfbody::before{content:'';position:absolute;top:10px;left:9px;width:11px;height:11px;background:#F5C24A;
+  box-shadow:22px 0 0 #F5C24A,44px 0 0 #F5C24A,0 22px 0 #F5C24A,22px 22px 0 #F5C24A,44px 22px 0 #F5C24A;}
+.mfbody.wide::before{box-shadow:22px 0 0 #F5C24A,44px 0 0 #F5C24A,66px 0 0 #F5C24A,0 22px 0 #F5C24A,22px 22px 0 #F5C24A,44px 22px 0 #F5C24A,66px 22px 0 #F5C24A;}
+.mfpipe{position:absolute;width:16px;height:34px;background:#52525B;border:2px solid #3F3F46;top:-34px}
+.mfpipe.a{left:13px}.mfpipe.b{left:42px}
+.mfpipe.wa{left:18px}.mfpipe.wb{left:64px}
+.msmoke{position:absolute;width:12px;height:12px;border-radius:50%;background:rgba(220,220,225,.85);bottom:0;left:50%;margin-left:-6px;opacity:0}
+.mfpipe .msmoke.s1{animation:mpuff 4.4s ease-out infinite}
+.mfpipe .msmoke.s2{animation:mpuff 4.4s ease-out infinite 1.5s}
+.mfpipe .msmoke.s3{animation:mpuff 4.4s ease-out infinite 3s}
+.mfpipe.slow .msmoke.s1{animation:mpuff 5.4s ease-out infinite}
+.mfpipe.slow .msmoke.s2{animation:mpuff 5.4s ease-out infinite 1.9s}
+.mfpipe.slow .msmoke.s3{animation:mpuff 5.4s ease-out infinite 3.8s}
+@keyframes mpuff{0%{opacity:0;transform:translateY(0) scale(.5)}15%{opacity:.85}100%{opacity:0;transform:translateY(-150px) scale(2.4)}}
+/* бренд BOXSTORE Академия */
+.mbrand{display:flex;flex-direction:column;align-items:center;margin-bottom:14px;position:relative;z-index:2}
+.mbrand .bx{background:#1a1a18;color:#fff;font-weight:700;font-size:22px;letter-spacing:3px;padding:7px 16px;font-family:'Arial Black','Arial',sans-serif;border:2px solid #E8A06A}
+.mbrand .bx sup{font-size:10px;top:-8px}
+.mbrand .acad{color:#E8A06A;font-size:12px;letter-spacing:6px;text-transform:uppercase;margin-top:6px;font-weight:600}
+/* карточка контента */
+.mcard{position:relative;z-index:2;background:rgba(20,16,14,0.93);border:3px solid #E8A06A;border-radius:6px;padding:14px 14px;width:100%;max-width:360px;display:flex;flex-direction:column;align-items:center;box-shadow:6px 6px 0 rgba(0,0,0,.3)}
+.mcard h1{font-size:17px;margin:0 0 4px}
+.mcard .sub{font-size:11px;line-height:1.5;margin-bottom:10px}
+.mcard .stats{margin-bottom:10px}
+.mcard .stat{padding:7px}
+.mcard input[type=text]{margin-bottom:6px;padding:11px 12px}
+.mcard .grp-btn{padding:9px 6px;font-size:13px}
+.mcard .btn-main{padding:12px;min-height:46px;font-size:15px}
+#start-screen{justify-content:flex-start;padding-top:54px;padding-bottom:30px}
+#start-screen .logo{display:none}
+#start-screen h1{color:#f5f0ec}
+#start-screen .sub{color:#9a8f88}
+#start-screen .stat{background:#241e1a;border:1px solid #3a322c}
+
 /* START SCREEN */
-.logo{background:#E8192C;color:#fff;font-weight:700;font-size:18px;letter-spacing:3px;padding:6px 16px;border-radius:4px;margin-bottom:16px;display:inline-block}
+.logo{background:#D96A4A;color:#fff;font-weight:700;font-size:18px;letter-spacing:3px;padding:6px 16px;border-radius:4px;margin-bottom:16px;display:inline-block}
 h1{font-size:20px;margin-bottom:8px;text-align:center}
 .sub{color:#777;font-size:12px;text-align:center;line-height:1.7;margin-bottom:16px}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;width:100%;max-width:360px}
 .stat{background:#1e1e1c;border-radius:6px;padding:10px;text-align:center}
-.stat .n{font-size:20px;font-weight:700;color:#E8192C}
+.stat .n{font-size:20px;font-weight:700;color:#D96A4A}
 .stat .l{font-size:9px;color:#555;margin-top:2px}
 input[type=text]{width:100%;max-width:360px;background:#1e1e1c;border:2px solid #333;color:#f0f0ee;font-size:16px;padding:14px 12px;border-radius:8px;font-family:'Courier New',monospace;text-align:center;margin-bottom:10px;display:block;-webkit-appearance:none;appearance:none}
-input[type=text]:focus{outline:none;border-color:#E8192C}
+input[type=text]:focus{outline:none;border-color:#D96A4A}
 input[type=text]::placeholder{color:#444}
-.err{color:#E8192C;font-size:11px;margin-bottom:8px;display:none}
+.err{color:#D96A4A;font-size:11px;margin-bottom:8px;display:none}
+.grp-btn{background:#1a1a18;color:#f0f0ee;border:2px solid #3a3a38;font-size:14px;font-weight:600;padding:12px 8px;border-radius:8px;font-family:'Courier New',monospace;cursor:pointer;-webkit-appearance:none;appearance:none;touch-action:manipulation;transition:all .15s}
+.grp-btn.sel{background:#D96A4A;border-color:#D96A4A;color:#fff}
+#group-grid{max-width:360px}
 
 /* MAIN BTN */
-.btn-main{background:#E8192C;color:#fff;border:none;font-size:16px;font-weight:700;padding:16px;border-radius:8px;font-family:'Courier New',monospace;width:100%;max-width:360px;display:block;min-height:52px;cursor:pointer;-webkit-appearance:none;appearance:none;touch-action:manipulation}
+.btn-main{background:#D96A4A;color:#fff;border:none;font-size:16px;font-weight:700;padding:16px;border-radius:8px;font-family:'Courier New',monospace;width:100%;max-width:360px;display:block;min-height:52px;cursor:pointer;-webkit-appearance:none;appearance:none;touch-action:manipulation}
 .btn-main:active{background:#b51020;transform:scale(0.98)}
 .btn-sec{background:#1e1e1c;color:#aaa;border:1px solid #333;font-size:13px;padding:12px;border-radius:8px;font-family:'Courier New',monospace;width:100%;max-width:360px;display:block;min-height:44px;cursor:pointer;touch-action:manipulation;margin-top:8px}
 .btn-sec:active{background:#2a2a28}
 
 /* HUD */
-#hud{background:#0a0a0a;border-bottom:2px solid #E8192C;padding:6px 10px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:nowrap;overflow:hidden}
-.hlogo{background:#E8192C;color:#fff;font-weight:700;font-size:9px;letter-spacing:1px;padding:3px 5px;flex-shrink:0;line-height:1.2}
+#hud{background:#0a0a0a;border-bottom:2px solid #D96A4A;padding:6px 10px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:nowrap;overflow:hidden}
+.hlogo{background:#D96A4A;color:#fff;font-weight:700;font-size:9px;letter-spacing:1px;padding:3px 5px;flex-shrink:0;line-height:1.2}
 #htimer{font-size:14px;font-weight:700;color:#f59e0b;flex-shrink:0}
 .hb{display:flex;flex-direction:column;flex-shrink:0}
 .hl{font-size:7px;color:#555;letter-spacing:0.5px}
 .hv{font-size:11px;font-weight:700}
-.hv.g{color:#22c55e}.hv.w{color:#f59e0b}.hv.r{color:#E8192C}
+.hv.g{color:#22c55e}.hv.w{color:#f59e0b}.hv.r{color:#D96A4A}
 .hbar{width:45px;height:4px;background:#222;border-radius:2px;margin-top:1px;flex-shrink:0}
 .hbar-f{height:100%;border-radius:2px}
 #hlvl{background:#378ADD22;border:1px solid #378ADD;color:#378ADD;font-size:8px;padding:2px 5px;border-radius:3px;white-space:nowrap;flex-shrink:0}
@@ -48,43 +111,43 @@ input[type=text]::placeholder{color:#444}
 
 /* GAME CANVAS AREA */
 #game-area{flex:1;position:relative;overflow:hidden}
-canvas{display:block;width:100%;height:100%}
+canvas{display:block;width:100%;height:100%;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 
 /* CONTROLS */
-#joy-zone{position:absolute;bottom:80px;left:12px;width:100px;height:100px;z-index:10;touch-action:none}
+#joy-zone{position:absolute;bottom:calc(80px + env(safe-area-inset-bottom, 0px));left:12px;width:100px;height:100px;z-index:10;touch-action:none}
 #joy-base{position:absolute;inset:0;border-radius:50%;background:rgba(255,255,255,0.05);border:2px solid rgba(255,255,255,0.1)}
 #joy-knob{position:absolute;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.3);top:50%;left:50%;transform:translate(-50%,-50%)}
-#joy-knob.active{background:rgba(232,25,44,0.4);border-color:#E8192C}
-#act-btn{position:absolute;bottom:80px;right:12px;width:68px;height:68px;border-radius:50%;background:rgba(232,25,44,0.15);border:2px solid #E8192C;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#E8192C;text-align:center;line-height:1.2;z-index:10;touch-action:manipulation;cursor:pointer;user-select:none}
+#joy-knob.active{background:rgba(232,25,44,0.4);border-color:#D96A4A}
+#act-btn{position:absolute;bottom:calc(80px + env(safe-area-inset-bottom, 0px));right:12px;width:68px;height:68px;border-radius:50%;background:rgba(232,25,44,0.15);border:2px solid #D96A4A;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#D96A4A;text-align:center;line-height:1.2;z-index:10;touch-action:manipulation;cursor:pointer;user-select:none}
 #act-btn:active{background:rgba(232,25,44,0.4);transform:scale(0.95)}
-#spd-mid{position:absolute;bottom:88px;left:50%;transform:translateX(-50%);background:#1e1e1ccc;border:1px solid #333;color:#666;font-size:9px;padding:5px 12px;border-radius:12px;z-index:10;touch-action:manipulation;cursor:pointer;font-family:'Courier New',monospace;white-space:nowrap}
+#spd-mid{position:absolute;bottom:calc(88px + env(safe-area-inset-bottom, 0px));left:50%;transform:translateX(-50%);background:#1e1e1ccc;border:1px solid #333;color:#666;font-size:9px;padding:5px 12px;border-radius:12px;z-index:10;touch-action:manipulation;cursor:pointer;font-family:'Courier New',monospace;white-space:nowrap}
 #near-hint{position:absolute;top:0;left:50%;transform:translateX(-50%);background:#f59e0bdd;color:#111;font-size:10px;font-weight:700;padding:3px 12px;border-radius:0 0 8px 8px;z-index:10;display:none;white-space:nowrap}
 #glog{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:#0a0a0a99;border:1px solid #1e1e1e;border-radius:4px;padding:4px 10px;z-index:5;white-space:nowrap;max-width:calc(100% - 230px);overflow:hidden}
 #glog-t{font-size:8px;color:#444;text-overflow:ellipsis;overflow:hidden}
 
 /* EVENT SHEET */
-#event-sheet{position:fixed;inset:0;z-index:200;background:#000a;display:none;flex-direction:column;justify-content:flex-end}
-#event-inner{background:#141414;border-top:2px solid #E8192C;border-radius:16px 16px 0 0;padding:16px 14px;padding-bottom:env(safe-area-inset-bottom,16px);max-height:82vh;overflow-y:auto}
-.etag{font-size:8px;color:#E8192C;letter-spacing:2px;text-transform:uppercase;margin-bottom:5px}
+#event-sheet{position:fixed;inset:0;z-index:200;background:#000a;display:none;flex-direction:column;justify-content:flex-end;padding:0 8px calc(64px + env(safe-area-inset-bottom,0px))}
+#event-inner{background:#141414;border:2px solid #D96A4A;border-radius:16px;padding:16px 14px;max-height:74vh;overflow-y:auto;box-shadow:0 8px 30px #000a}
+.etag{font-size:8px;color:#D96A4A;letter-spacing:2px;text-transform:uppercase;margin-bottom:5px}
 .etitle{font-size:14px;font-weight:700;margin-bottom:6px;line-height:1.4}
-.ebody{font-size:11px;color:#999;margin-bottom:12px;line-height:1.6;padding-left:8px;border-left:2px solid #E8192C44}
+.ebody{font-size:11px;color:#999;margin-bottom:12px;line-height:1.6;padding-left:8px;border-left:2px solid #D96A4A44}
 .eopts{display:flex;flex-direction:column;gap:8px}
 .eopt{background:#1e1e1c;border:1px solid #2a2a2a;color:#f0f0ee;font-size:12px;padding:13px 12px;border-radius:8px;text-align:left;line-height:1.5;width:100%;cursor:pointer;touch-action:manipulation;font-family:'Courier New',monospace;-webkit-appearance:none;appearance:none}
-.eopt:active{background:#2e2e2c;border-color:#E8192C}
+.eopt:active{background:#2e2e2c;border-color:#D96A4A}
 
 /* RESULT */
 #result-overlay{position:fixed;inset:0;z-index:300;background:#000c;display:none;align-items:center;justify-content:center;padding:16px}
 #result-card{background:#141414;border-radius:12px;padding:22px 18px;width:100%;max-width:380px;text-align:center}
 #result-card.good{border:2px solid #22c55e;box-shadow:0 0 30px #22c55e22}
-#result-card.bad{border:2px solid #E8192C;box-shadow:0 0 30px #E8192C22}
+#result-card.bad{border:2px solid #D96A4A;box-shadow:0 0 30px #D96A4A22}
 #result-card.neu{border:2px solid #f59e0b;box-shadow:0 0 30px #f59e0b22}
 .r-icon{font-size:36px;margin-bottom:8px}
 .r-title{font-size:15px;font-weight:700;margin-bottom:8px}
 .r-body{font-size:12px;color:#bbb;line-height:1.6;margin-bottom:10px}
 .r-xp{font-size:11px;font-weight:700;margin-bottom:10px}
-.r-xp.good{color:#22c55e}.r-xp.bad{color:#E8192C}.r-xp.neu{color:#f59e0b}
+.r-xp.good{color:#22c55e}.r-xp.bad{color:#D96A4A}.r-xp.neu{color:#f59e0b}
 .r-tool{font-size:10px;color:#555;border-top:1px solid #222;padding-top:8px;margin-bottom:14px;font-style:italic}
-.r-cont-btn{background:#E8192C;color:#fff;border:none;font-size:14px;padding:14px;border-radius:8px;width:100%;cursor:pointer;touch-action:manipulation;font-family:'Courier New',monospace;-webkit-appearance:none}
+.r-cont-btn{background:#D96A4A;color:#fff;border:none;font-size:14px;padding:14px;border-radius:8px;width:100%;cursor:pointer;touch-action:manipulation;font-family:'Courier New',monospace;-webkit-appearance:none}
 .r-cont-btn:active{background:#b51020}
 
 /* FINAL */
@@ -105,7 +168,7 @@ canvas{display:block;width:100%;height:100%}
 .vbox{background:#1e1e1c;border-radius:6px;padding:11px 12px;font-size:11px;color:#aaa;line-height:1.6;margin-bottom:8px}
 .vbox b{color:#f0f0ee}
 .vbox.str{border-left:3px solid #22c55e}
-.vbox.grow{border-left:3px solid #E8192C}
+.vbox.grow{border-left:3px solid #D96A4A}
 .vbox.main{border-left:3px solid #378ADD}
 .email-box{background:#1e1e1c;border-radius:8px;padding:12px;margin-top:10px}
 .email-box p{font-size:10px;color:#666;margin-bottom:8px}
@@ -116,7 +179,25 @@ canvas{display:block;width:100%;height:100%}
 
 <!-- START SCREEN -->
 <div id="start-screen" class="screen">
-  <div class="logo">BOXSTORE</div>
+  <div class="mcloud m1"></div>
+  <div class="mcloud m2"></div>
+  <div class="mcloud m3"></div>
+  <div class="mcloud m4"></div>
+  <div class="mfactory left">
+    <div class="mfpipe a"><div class="msmoke s1"></div><div class="msmoke s2"></div><div class="msmoke s3"></div></div>
+    <div class="mfpipe b"><div class="msmoke s1"></div><div class="msmoke s2"></div><div class="msmoke s3"></div></div>
+    <div class="mfbody"></div>
+  </div>
+  <div class="mfactory right">
+    <div class="mfpipe wa slow"><div class="msmoke s1"></div><div class="msmoke s2"></div><div class="msmoke s3"></div></div>
+    <div class="mfpipe wb slow"><div class="msmoke s1"></div><div class="msmoke s2"></div><div class="msmoke s3"></div></div>
+    <div class="mfbody wide"></div>
+  </div>
+  <div class="mbrand">
+    <div class="bx">BOXSTORE<sup>®</sup></div>
+    <div class="acad">Академия</div>
+  </div>
+  <div class="mcard">
   <h1>Симулятор смены</h1>
   <div class="sub">Ты — старший оператор участка раскроя.<br>Управляй джойстиком, реагируй на события.<br>Цель: 150 листов, ОЕЕ ≥ 70%</div>
   <div class="stats">
@@ -126,14 +207,25 @@ canvas{display:block;width:100%;height:100%}
   </div>
   <input type="text" id="name-inp" placeholder="Введи своё ФИО" maxlength="50" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false">
   <div class="err" id="name-err">Пожалуйста, введи ФИО</div>
+  <div style="font-size:13px;font-weight:600;color:#E8A06A;margin:14px 0 8px;text-align:center;letter-spacing:1px">ВЫБЕРИ СВОЮ ГРУППУ</div>
+  <div id="group-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px;width:100%">
+    <button class="grp-btn" data-group="Смена 1">Смена 1</button>
+    <button class="grp-btn" data-group="Смена 2">Смена 2</button>
+    <button class="grp-btn" data-group="Смена 3">Смена 3</button>
+    <button class="grp-btn" data-group="Выходная">Выходная</button>
+    <button class="grp-btn" data-group="АУП">АУП</button>
+    <button class="grp-btn" data-group="Офис">Офис</button>
+  </div>
+  <div class="err" id="group-err">Пожалуйста, выбери группу</div>
   <button class="btn-main" id="start-btn">Начать смену →</button>
+  </div>
 </div>
 
 <!-- HUD -->
 <div id="hud" style="display:none">
   <div class="hlogo">BOXSTORE</div>
   <div id="htimer">08:00</div>
-  <button id="hspd">▶▶ x3</button>
+  <div id="hspd" style="background:#241e1a;border:1px solid #4a4038;color:#E8A06A;font-size:9px;padding:2px 6px;border-radius:3px">▶▶▶ x6</div>
   <div class="hb">
     <div class="hl">ОЕЕ</div>
     <div id="hoee" class="hv w">62%</div>
@@ -150,7 +242,7 @@ canvas{display:block;width:100%;height:100%}
   <canvas id="gc"></canvas>
   <div id="joy-zone"><div id="joy-base"></div><div id="joy-knob"></div></div>
   <div id="act-btn">ВОЙТИ<br>в зону</div>
-  <div id="spd-mid">▶▶ x3</div>
+  <div id="spd-mid" style="display:none">▶▶▶ x6</div>
   <div id="near-hint">Нажми ВОЙТИ</div>
   <div id="glog"><div id="glog-t">Смена началась</div></div>
 </div>
@@ -199,15 +291,31 @@ canvas{display:block;width:100%;height:100%}
     <div class="sec">Рекомендации</div>
     <div class="vbox" id="fc-rec"></div>
     <div class="email-box" style="text-align:center">
-      <div style="font-size:36px;margin-bottom:8px">📸</div>
-      <div style="font-size:13px;font-weight:600;color:#f0f0ee;margin-bottom:6px">Сделайте скриншот этого экрана</div>
-      <div style="font-size:11px;color:#888;line-height:1.6">и отправьте вашему руководителю</div>
+      <div style="font-size:36px;margin-bottom:8px">📊</div>
+      <div id="send-status" style="font-size:13px;font-weight:600;color:#22c55e;margin-bottom:6px">Отправка результата...</div>
+      <div style="font-size:11px;color:#888;line-height:1.6">Результат автоматически уходит руководителю.<br>Можно также сделать скриншот.</div>
     </div>
     <button class="btn-sec" id="restart-btn">Новая смена</button>
   </div>
 </div>
 
 <script>
+// ============================================================
+// POLYFILLS
+// ============================================================
+if(!CanvasRenderingContext2D.prototype.roundRect){
+  CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){
+    if(typeof r==='object')r=r[0]||0;
+    if(w<2*r)r=w/2;if(h<2*r)r=h/2;
+    this.moveTo(x+r,y);
+    this.arcTo(x+w,y,x+w,y+h,r);
+    this.arcTo(x+w,y+h,x,y+h,r);
+    this.arcTo(x,y+h,x,y,r);
+    this.arcTo(x,y,x+w,y,r);
+    this.closePath();
+  };
+}
+
 // ============================================================
 // GAME DATA
 // ============================================================
@@ -222,9 +330,9 @@ function resizeCanvas(){
 }
 window.addEventListener('resize',resizeCanvas);
 
-function wx(x){return x*canvas.width/WW}
+function wx(x){const m=canvas.width*0.04;return m+x*(canvas.width-2*m)/WW}
 function wy(y){return y*canvas.height/WH}
-function ws(s){return s*Math.min(canvas.width/WW,canvas.height/WH)}
+function ws(s){const m=canvas.width*0.04;return s*Math.min((canvas.width-2*m)/WW,canvas.height/WH)}
 
 const MAT={белый:'#f0f0f0',бурый:'#8B5E3C',чёрный:'#252525',лайм:'#7ec850',барби:'#ff69b4',небо:'#87ceeb',розовый:'#ffb6c1',серый:'#999',ягодный:'#8B1A4A'};
 
@@ -289,19 +397,22 @@ const PALLOUT=[
 ];
 const TRASH={x:4,y:192,w:22,h:32};
 
-// Corridors
+// Corridors — проходы строго в зазорах; 2-й ряд непроходим (событий там нет)
 const CORRIDORS=[
-  {x:0,y:84,w:WW,h:70},    // коридор между паллетами и станками
-  {x:0,y:230,w:WW,h:80},   // главный коридор между рядами
-  {x:0,y:340,w:WW,h:30},
-  {x:0,y:370,w:WW,h:110},
-  {x:0,y:84,w:50,h:260},   // широкий левый боковой
-  {x:WW-50,y:84,w:50,h:260}, // широкий правый боковой
+  {x:0,y:88,w:WW,h:34},     // над 1-м рядом (88–122)
+  {x:0,y:230,w:WW,h:36},    // между 1-м и 2-м рядом (230–266)
+  {x:0,y:332,w:WW,h:36},    // между 2-м рядом и упаковкой (332–368)
+  {x:0,y:424,w:WW,h:52},    // проход упаковки под столами (424–476)
 ];
+// вертикальные связки между парами 1-го ряда (через зазоры)
 for(let p=0;p<3;p++){
   const x=MPAIRS[p].m2.x+MPAIRS[p].m2.w;
-  CORRIDORS.push({x,y:120,w:MPAIRS[p+1].m1.x-x,h:220});
+  CORRIDORS.push({x:x-4,y:118,w:(MPAIRS[p+1].m1.x-x)+8,h:250}); // 118–368
 }
+// спуски в зону упаковки через зазоры между столами
+[[0,20],[98,116],[194,212],[290,312],[400,412],[500,512],[596,600]].forEach(g=>{
+  CORRIDORS.push({x:g[0],y:368,w:g[1]-g[0],h:58}); // 368–426
+});
 function inCorridor(px,py){
   for(const c of CORRIDORS)if(px>=c.x&&px<=c.x+c.w&&py>=c.y&&py<=c.y+c.h)return true;
   return false;
@@ -312,7 +423,7 @@ function inCorridor(px,py){
 // ============================================================
 const G={
   running:false,eventActive:false,resultShowing:false,
-  speed:3,time:8*60,timeEnd:16*60,
+  speed:6,time:8*60,timeEnd:16*60,
   oee:0.62,sheets:0,sheetsTarget:150,
   xp:0,level:1,mood:50,
   logText:'Смена началась',
@@ -322,6 +433,9 @@ const G={
 };
 const player={x:300,y:265,speed:110};
 let playerName='';
+let playerGroup='';
+let gameStartMs=0;
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbxokPRk_qp9DjOBMcDyvFmA5-o_-Tb7Bjb0z3oxgByCvIZ7PK_nRXCYrdWJLTjat8f1Cg/exec';
 
 // ============================================================
 // EVENTS
@@ -406,6 +520,7 @@ function openEvent(ev){
   document.getElementById('event-sheet').style.display='flex';
 }
 function resolveEvent(ev,opt){
+  if(G.resolved.has(ev.id))return;
   document.getElementById('event-sheet').style.display='none';
   G.resolved.add(ev.id);G.activeEvents=G.activeEvents.filter(e=>e.id!==ev.id);
   G.eventActive=false;
@@ -450,7 +565,7 @@ function updateHUD(){
   const oee=Math.round(G.oee*100);
   const oe=document.getElementById('hoee');oe.textContent=oee+'%';oe.className='hv '+(oee>=70?'g':oee>=55?'w':'r');
   document.getElementById('hoee-f').style.width=oee+'%';
-  document.getElementById('hoee-f').style.background=oee>=70?'#22c55e':oee>=55?'#f59e0b':'#E8192C';
+  document.getElementById('hoee-f').style.background=oee>=70?'#22c55e':oee>=55?'#f59e0b':'#D96A4A';
   document.getElementById('hsh').textContent=G.sheets+'/150';
   document.getElementById('hxp').textContent=G.xp;
   const mo=document.getElementById('hmood');
@@ -463,10 +578,48 @@ function updateHUD(){
 // DRAW
 // ============================================================
 function drawSprite(x,y,role,moving){
-  const px=wx(x),py=wy(y),sc=ws(2.2);
+  const px=wx(x),py=wy(y),sc=ws(role==='player'?2.9:2.2);
   const bob=moving?Math.sin(Date.now()/150)*sc*1.5:0;
-  const c={player:{b:'#E8192C',h:'#fff'},rezchik:{b:'#378ADD',h:'#f59e0b'},upak:{b:'#f59e0b',h:'#378ADD'}}[role]||{b:'#378ADD',h:'#f59e0b'};
+  const c={player:{b:'#2C3E63',h:'#1a1a18'},rezchik:{b:'#378ADD',h:'#f59e0b'},upak:{b:'#f59e0b',h:'#378ADD'}}[role]||{b:'#378ADD',h:'#f59e0b'};
   ctx.fillStyle='#0004';ctx.beginPath();ctx.ellipse(px,py+sc*6,sc*4,sc*1.5,0,0,Math.PI*2);ctx.fill();
+
+  if(role==='player'){
+    // брюки
+    ctx.fillStyle='#23304d';
+    if(moving){ctx.fillRect(px-sc*2,py+bob+sc*4,sc*1.5,sc*3.5);ctx.fillRect(px+sc*0.5,py+bob+sc*4,sc*1.5,sc*3.5);}
+    else ctx.fillRect(px-sc*1.5,py+bob+sc*4,sc*3,sc*3.5);
+    // туфли
+    ctx.fillStyle='#15161a';
+    if(moving){ctx.fillRect(px-sc*2.1,py+bob+sc*7,sc*1.7,sc*1.1);ctx.fillRect(px+sc*0.4,py+bob+sc*7,sc*1.7,sc*1.1);}
+    else ctx.fillRect(px-sc*1.6,py+bob+sc*7,sc*3.2,sc*1.1);
+    // пиджак
+    ctx.fillStyle=c.b;ctx.fillRect(px-sc*2,py+bob,sc*4,sc*4.2);
+    // рукава
+    ctx.fillRect(px-sc*3.5,py+bob-sc*1,sc*1.5,sc*3.2);
+    ctx.fillRect(px+sc*2,py+bob-sc*1,sc*1.5,sc*3.2);
+    // кисти
+    ctx.fillStyle='#FDBCB4';ctx.fillRect(px-sc*3.4,py+bob+sc*2,sc*1.3,sc*1);ctx.fillRect(px+sc*2.1,py+bob+sc*2,sc*1.3,sc*1);
+    // лацканы + рубашка + галстук
+    ctx.fillStyle='#1f2b45';
+    ctx.beginPath();ctx.moveTo(px-sc*2,py+bob);ctx.lineTo(px,py+bob+sc*2);ctx.lineTo(px-sc*0.9,py+bob);ctx.fill();
+    ctx.beginPath();ctx.moveTo(px+sc*2,py+bob);ctx.lineTo(px,py+bob+sc*2);ctx.lineTo(px+sc*0.9,py+bob);ctx.fill();
+    ctx.fillStyle='#f0f0ec';ctx.beginPath();ctx.moveTo(px-sc*0.8,py+bob);ctx.lineTo(px+sc*0.8,py+bob);ctx.lineTo(px,py+bob+sc*1.6);ctx.fill();
+    ctx.fillStyle='#D96A4A';ctx.fillRect(px-sc*0.3,py+bob+sc*0.2,sc*0.6,sc*2);
+    // голова
+    ctx.fillStyle='#FDBCB4';ctx.beginPath();ctx.arc(px,py+bob-sc*2.5,sc*2.8,0,Math.PI*2);ctx.fill();
+    // волосы
+    ctx.fillStyle='#3a2e22';ctx.beginPath();ctx.arc(px,py+bob-sc*3.1,sc*2.8,Math.PI*1.05,Math.PI*1.95);ctx.fill();
+    ctx.fillRect(px-sc*2.8,py+bob-sc*3.4,sc*5.6,sc*1);
+    // тёмные очки
+    ctx.fillStyle='#0a0a0a';
+    ctx.fillRect(px-sc*2.1,py+bob-sc*2.9,sc*1.7,sc*1.3);
+    ctx.fillRect(px+sc*0.4,py+bob-sc*2.9,sc*1.7,sc*1.3);
+    ctx.fillRect(px-sc*0.4,py+bob-sc*2.5,sc*0.8,sc*0.4);
+    ctx.fillStyle='#ffffff55';ctx.fillRect(px-sc*1.9,py+bob-sc*2.7,sc*0.6,sc*0.4);ctx.fillRect(px+sc*0.6,py+bob-sc*2.7,sc*0.6,sc*0.4);
+    return;
+  }
+
+  // рабочие
   ctx.fillStyle=c.b;
   ctx.fillRect(px-sc*2,py+bob,sc*4,sc*4);
   ctx.fillRect(px-sc*3.5,py+bob-sc*1,sc*1.5,sc*3);
@@ -475,22 +628,16 @@ function drawSprite(x,y,role,moving){
   else ctx.fillRect(px-sc*1.5,py+bob+sc*4,sc*3,sc*3.5);
   ctx.fillStyle='#FDBCB4';ctx.beginPath();ctx.arc(px,py+bob-sc*2.5,sc*2.8,0,Math.PI*2);ctx.fill();
   ctx.fillStyle='#333';ctx.fillRect(px-sc*1.2,py+bob-sc*3.2,sc*0.8,sc*0.8);ctx.fillRect(px+sc*0.4,py+bob-sc*3.2,sc*0.8,sc*0.8);
-  if(role==='player'){
-    ctx.fillStyle='#fff';ctx.beginPath();ctx.ellipse(px,py+bob-sc*5,sc*3,sc*1.4,0,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#E8192C';ctx.fillRect(px-sc*2.8,py+bob-sc*5,sc*5.6,sc*1.2);
-    ctx.fillStyle='#fff';ctx.font=`bold ${sc*2}px 'Courier New'`;ctx.textAlign='center';ctx.fillText('СТ',px,py+bob-sc*4.2);
-  } else {
-    ctx.fillStyle=c.h;ctx.beginPath();ctx.arc(px,py+bob-sc*5.2,sc*2.4,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='rgba(0,0,0,0.2)';ctx.beginPath();ctx.arc(px,py+bob-sc*5.2,sc*2.4,Math.PI,0);ctx.fill();
-  }
+  ctx.fillStyle=c.h;ctx.beginPath();ctx.arc(px,py+bob-sc*5.2,sc*2.4,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(0,0,0,0.2)';ctx.beginPath();ctx.arc(px,py+bob-sc*5.2,sc*2.4,Math.PI,0);ctx.fill();
 }
 function drawMachine(m){
   ctx.fillStyle=m.on?'#26264a':'#1a1a2e';ctx.strokeStyle=m.on?'#4444aa':'#2a2a4a';ctx.lineWidth=ws(1.2);
   ctx.beginPath();ctx.roundRect(wx(m.x),wy(m.y),wx(m.x+m.w)-wx(m.x),wy(m.y+m.h)-wy(m.y),ws(3));ctx.fill();ctx.stroke();
   const bx=wx(m.x+4),by2=wy(m.y+5),bw=wx(m.x+m.w-4)-wx(m.x+4),bh=wy(m.y+9)-wy(m.y+5);
   ctx.fillStyle='#0a0a0a';ctx.fillRect(bx,by2,bw,bh);
-  ctx.fillStyle=m.on?'#22c55e':'#E8192C';ctx.fillRect(bx,by2,bw*m.prog,bh);
-  ctx.fillStyle=m.on?'#22c55e':'#E8192C';ctx.beginPath();ctx.arc(wx(m.x+m.w-5),wy(m.y+5),ws(3),0,Math.PI*2);ctx.fill();
+  ctx.fillStyle=m.on?'#22c55e':'#D96A4A';ctx.fillRect(bx,by2,bw*m.prog,bh);
+  ctx.fillStyle=m.on?'#22c55e':'#D96A4A';ctx.beginPath();ctx.arc(wx(m.x+m.w-5),wy(m.y+5),ws(3),0,Math.PI*2);ctx.fill();
   ctx.fillStyle='#bbb';ctx.font=`${ws(5.5)}px 'Courier New'`;ctx.textAlign='center';
   ctx.fillText(`${m.id}`,wx(m.x+m.w/2),wy(m.y+m.h/2+3));
   [m.tT,m.tB].forEach(t=>{
@@ -534,12 +681,20 @@ function drawEventMarker(ev){
 
 function draw(){
   const cw=canvas.width,ch=canvas.height;
-  ctx.fillStyle='#161612';ctx.fillRect(0,0,cw,ch);
-  ctx.strokeStyle='#1c1c18';ctx.lineWidth=0.4;
-  for(let x=0;x<cw;x+=wx(50)){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,ch);ctx.stroke();}
-  for(let y=0;y<ch;y+=wy(50)){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(cw,y);ctx.stroke();}
+  // тёплый пиксельный пол — шахматная плитка
+  ctx.fillStyle='#241d17';ctx.fillRect(0,0,cw,ch);
+  const ts=wx(25);
+  for(let y=0,ry=0;y<ch;y+=ts,ry++){
+    for(let x=0,rx=0;x<cw;x+=ts,rx++){
+      ctx.fillStyle=((rx+ry)%2===0)?'#2b2118':'#251c14';
+      ctx.fillRect(x,y,ts,ts);
+    }
+  }
+  ctx.strokeStyle='#1b150f';ctx.lineWidth=0.5;
+  for(let x=0;x<cw;x+=ts){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,ch);ctx.stroke();}
+  for(let y=0;y<ch;y+=ts){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(cw,y);ctx.stroke();}
   // Zone labels
-  ctx.fillStyle='#252520';ctx.font=`${ws(5.5)}px 'Courier New'`;ctx.textAlign='left';
+  ctx.fillStyle='#6a5640';ctx.font=`${ws(5.5)}px 'Courier New'`;ctx.textAlign='left';
   ctx.fillText('ПАЛЛЕТЫ С ЛИСТАМИ',wx(5),wy(90));
   ctx.fillText('СТАНКИ 1–8',wx(5),wy(98));
   ctx.fillText('2-й РЯД ОБОРУДОВАНИЯ',wx(5),wy(262));
@@ -659,7 +814,7 @@ function endGame(){
   document.getElementById('fc-xp').textContent=G.xp+' XP';
   const lvls=['','Рабочий','Ст. оператор','Уверенный','Лидер'];
   document.getElementById('fc-lvl').textContent=lvls[G.level]||'Ур.'+G.level;
-  const sC={task:'#378ADD',people:'#22c55e',loss:'#f59e0b',authority:'#E8192C'};
+  const sC={task:'#378ADD',people:'#22c55e',loss:'#f59e0b',authority:'#D96A4A'};
   const sN={task:'Постановка задач',people:'Работа с людьми',loss:'Видение потерь',authority:'Авторитет'};
   const sD={task:'4W1H, делегирование',people:'SBI, GROW, конфликты',loss:'Потери, 5С, запасы',authority:'Влияние, авторитет'};
   const skEl=document.getElementById('fc-skills');skEl.innerHTML='';
@@ -677,18 +832,28 @@ function endGame(){
   const rM={task:'4W1H, confirm back, делегирование, воронка вопросов.',people:'SBI, GROW, ситуационное лидерство, открытые вопросы.',loss:'Перекрываемое время (СОП п.2), 5С, 5 Почему, запасы.',authority:'Влияние через данные, тет-а-тет разговор, стиль лидерства.'};
   const weak=sorted.length?sorted[sorted.length-1].k:'task';
   document.getElementById('fc-rec').innerHTML=`Фокус: <b>${sN[weak]}</b><br>${rM[weak]}`;
+  sendResults();
 }
 
 function sendResults(){
   const btn=document.getElementById('send-btn'),st=document.getElementById('send-status');
-  btn.disabled=true;btn.textContent='Отправка...';
+  if(btn){btn.disabled=true;btn.textContent='Отправка...';}
   const sN={task:'Постановка задач',people:'Работа с людьми',loss:'Видение потерь',authority:'Авторитет'};
   const lvls=['','Рабочий','Ст. оператор','Уверенный','Системный лидер'];
-  let skills='';Object.entries(G.skillScores).forEach(([k,v])=>{const p=G.skillMax[k]?Math.round(v/G.skillMax[k]*100):0;skills+=`${sN[k]}: ${p}%\n`;});
-  const body=`ФИО: ${playerName}\nДата: ${new Date().toLocaleDateString('ru-RU')}\n\nОЕЕ: ${Math.round(G.oee*100)}%\nЛистов: ${G.sheets}/150\nXP: ${G.xp}\nУровень: ${lvls[G.level]}\n\nНавыки:\n${skills}\nНастроение команды: ${G.mood}/100`;
-  fetch('https://formspree.io/f/xbdbanzw',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({name:playerName,message:body,_subject:`BOXSTORE: ${playerName}`})})
-  .then(r=>{st.textContent=r.ok?'✓ Отправлено на krylov.e@diid.tech':'Ошибка. Сохрани скриншот.';st.style.color=r.ok?'#22c55e':'#E8192C';btn.disabled=false;btn.textContent='📧 Отправить повторно';})
-  .catch(()=>{st.textContent='Нет сети. Сохрани скриншот.';st.style.color='#E8192C';btn.disabled=false;});
+  const skillsObj={};
+  Object.entries(G.skillScores).forEach(([k,v])=>{skillsObj[sN[k]]=(G.skillMax[k]?Math.round(v/G.skillMax[k]*100):0)+'%';});
+  const timeSec=gameStartMs?Math.round((Date.now()-gameStartMs)/1000):'';
+  const payload={
+    name:playerName,
+    group:playerGroup,
+    score:G.xp,
+    percent:Math.round(G.oee*100)+'%',
+    time:timeSec,
+    answers:{'ОЕЕ':Math.round(G.oee*100)+'%','Листов':G.sheets+'/150','XP':G.xp,'Уровень':lvls[G.level],'Настроение':G.mood+'/100',...skillsObj}
+  };
+  fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)})
+  .then(()=>{if(st){st.textContent='✓ Результат отправлен руководителю';st.style.color='#22c55e';}if(btn){btn.disabled=false;btn.textContent='Отправить повторно';}})
+  .catch(()=>{if(st){st.textContent='Нет сети. Сделай скриншот.';st.style.color='#D96A4A';}if(btn){btn.disabled=false;}});
 }
 
 // ============================================================
@@ -701,24 +866,27 @@ function startGame(){
     document.getElementById('name-err').style.display='block';
     return;
   }
+  if(!playerGroup){
+    document.getElementById('group-err').style.display='block';
+    return;
+  }
   playerName=name;
+  gameStartMs=Date.now();
   document.getElementById('name-err').style.display='none';
+  document.getElementById('group-err').style.display='none';
   document.getElementById('start-screen').style.display='none';
   document.getElementById('hud').style.display='flex';
   document.getElementById('game-area').style.display='block';
-  resizeCanvas();
-  updateHUD();
-  G.running=true;
-  last=performance.now();
-  requestAnimationFrame(loop);
+  requestAnimationFrame(()=>{
+    resizeCanvas();
+    updateHUD();
+    G.running=true;
+    last=performance.now();
+    requestAnimationFrame(loop);
+  });
 }
 
-function toggleSpeed(){
-  G.speed=G.speed===3?6:G.speed===6?1:3;
-  const t=G.speed===1?'▶ x1':G.speed===3?'▶▶ x3':'▶▶▶ x6';
-  document.getElementById('hspd').textContent=t;
-  document.getElementById('spd-mid').textContent=t;
-}
+function toggleSpeed(){ /* скорость фиксирована x6 */ }
 
 // Wire up ALL buttons with both click and touchend
 function wireBtn(id,fn){
@@ -728,12 +896,26 @@ function wireBtn(id,fn){
   el.addEventListener('touchend',e=>{e.preventDefault();fn();},{passive:false});
 }
 wireBtn('start-btn',startGame);
+// Group selection
+document.querySelectorAll('.grp-btn').forEach(b=>{
+  const pick=()=>{
+    document.querySelectorAll('.grp-btn').forEach(x=>x.classList.remove('sel'));
+    b.classList.add('sel');
+    playerGroup=b.getAttribute('data-group');
+    document.getElementById('group-err').style.display='none';
+  };
+  b.addEventListener('click',pick);
+  b.addEventListener('touchend',e=>{e.preventDefault();pick();},{passive:false});
+});
 wireBtn('r-cont',closeResult);
 wireBtn('send-btn',sendResults);
 wireBtn('restart-btn',()=>location.reload());
 wireBtn('act-btn',tryInteract);
 wireBtn('hspd',toggleSpeed);
 wireBtn('spd-mid',toggleSpeed);
+
+// Prevent iOS scroll/bounce during gameplay
+document.getElementById('game-area').addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
 
 // Also handle canvas tap for event markers
 document.getElementById('gc').addEventListener('touchend',e=>{
