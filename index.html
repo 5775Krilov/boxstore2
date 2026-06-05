@@ -55,24 +55,24 @@ body{width:100%;height:100%;overflow:hidden;position:fixed;top:0;left:0;right:0;
 .mfpipe.slow .msmoke.s3{animation:mpuff 5.4s ease-out infinite 3.8s}
 @keyframes mpuff{0%{opacity:0;transform:translateY(0) scale(.5)}15%{opacity:.85}100%{opacity:0;transform:translateY(-150px) scale(2.4)}}
 /* бренд BOXSTORE Академия */
-.mbrand{display:flex;flex-direction:column;align-items:center;margin-bottom:8px;position:relative;z-index:2}
-.mbrand .bx{background:#1a1a18;color:#fff;font-weight:700;font-size:18px;letter-spacing:3px;padding:5px 13px;font-family:'Arial Black','Arial',sans-serif;border:2px solid #E8A06A}
-.mbrand .bx sup{font-size:9px;top:-7px}
-.mbrand .acad{color:#E8A06A;font-size:10px;letter-spacing:5px;text-transform:uppercase;margin-top:5px;font-weight:600}
+.mbrand{display:flex;flex-direction:column;align-items:center;margin-bottom:6px;position:relative;z-index:2}
+.mbrand .bx{background:#1a1a18;color:#fff;font-weight:700;font-size:16px;letter-spacing:2px;padding:4px 11px;font-family:'Arial Black','Arial',sans-serif;border:2px solid #E8A06A}
+.mbrand .bx sup{font-size:8px;top:-6px}
+.mbrand .acad{color:#E8A06A;font-size:9px;letter-spacing:4px;text-transform:uppercase;margin-top:4px;font-weight:600}
 /* карточка контента */
-.mcard{position:relative;z-index:2;background:rgba(20,16,14,0.93);border:2px solid #E8A06A;border-radius:6px;padding:12px 12px;width:100%;max-width:340px;display:flex;flex-direction:column;align-items:center;box-shadow:5px 5px 0 rgba(0,0,0,.3)}
-.mcard h1{font-size:15px;margin:0 0 3px}
-.mcard .sub{font-size:10px;line-height:1.45;margin-bottom:8px}
-.mcard .stats{margin-bottom:8px;gap:6px}
-.mcard .stat{padding:5px}
-.mcard .stat .n{font-size:15px}
-.mcard .stat .l{font-size:8px}
-.mcard input[type=text]{margin-bottom:5px;padding:9px 10px;font-size:15px}
-.mcard .grp-btn{padding:7px 5px;font-size:12px}
-.mcard #group-grid{gap:6px}
-.mcard .btn-main{padding:10px;min-height:42px;font-size:14px}
-.mcard .err{font-size:10px;margin-bottom:5px}
-#start-screen{justify-content:flex-start;padding-top:38px;padding-bottom:24px}
+.mcard{position:relative;z-index:2;background:rgba(20,16,14,0.93);border:2px solid #E8A06A;border-radius:6px;padding:10px 11px;width:100%;max-width:330px;display:flex;flex-direction:column;align-items:center;box-shadow:5px 5px 0 rgba(0,0,0,.3)}
+.mcard h1{font-size:14px;margin:0 0 2px}
+.mcard .sub{font-size:9px;line-height:1.4;margin-bottom:7px}
+.mcard .stats{margin-bottom:7px;gap:5px}
+.mcard .stat{padding:4px}
+.mcard .stat .n{font-size:13px}
+.mcard .stat .l{font-size:7px}
+.mcard input[type=text]{margin-bottom:5px;padding:8px 10px;font-size:15px}
+.mcard .grp-btn{padding:6px 4px;font-size:11px}
+.mcard #group-grid{gap:5px}
+.mcard .btn-main{padding:9px;min-height:40px;font-size:14px}
+.mcard .err{font-size:9px;margin-bottom:4px}
+#start-screen{justify-content:flex-start;padding-top:28px;padding-bottom:20px}
 #start-screen .logo{display:none}
 #start-screen h1{color:#f5f0ec}
 #start-screen .sub{color:#9a8f88}
@@ -334,9 +334,9 @@ function resizeCanvas(){
 }
 window.addEventListener('resize',resizeCanvas);
 
-function wx(x){const m=canvas.width*0.04;return m+x*(canvas.width-2*m)/WW}
+function wx(x){return x*canvas.width/WW}
 function wy(y){return y*canvas.height/WH}
-function ws(s){const m=canvas.width*0.04;return s*Math.min((canvas.width-2*m)/WW,canvas.height/WH)}
+function ws(s){return s*Math.min(canvas.width/WW,canvas.height/WH)}
 
 const MAT={белый:'#f0f0f0',бурый:'#8B5E3C',чёрный:'#252525',лайм:'#7ec850',барби:'#ff69b4',небо:'#87ceeb',розовый:'#ffb6c1',серый:'#999',ягодный:'#8B1A4A'};
 
@@ -401,19 +401,21 @@ const PALLOUT=[
 ];
 const TRASH={x:4,y:192,w:22,h:32};
 
-// Corridors — горизонтальные проходы-аисли + чистые вертикальные проходы строго в зазорах между станками
+// Corridors — аисли + боковые магистрали (движение по краям) + чистые проходы в середине
 const CORRIDORS=[
   {x:0,y:84,w:WW,h:36},      // верхний проход (84–120)
   {x:0,y:244,w:WW,h:26},     // между 1-м и 2-м рядом (244–270)
   {x:0,y:330,w:WW,h:42},     // между 2-м рядом и упаковкой (330–372)
   {x:0,y:424,w:WW,h:54},     // упаковка под столами (424–478)
+  {x:0,y:84,w:50,h:288},     // ЛЕВАЯ магистраль (0–50, 84–372)
+  {x:WW-50,y:84,w:50,h:288}, // ПРАВАЯ магистраль (550–600)
 ];
-// вертикальные проходы в зазорах 1-го ряда (между станками m1 и m2 — чисто)
+// чистые вертикальные проходы в зазорах 1-го ряда (между m1 и m2)
 for(let p=0;p<4;p++){
-  const x=MPAIRS[p].m1.x+MPAIRS[p].m1.w; // правый край m1
-  CORRIDORS.push({x:x,y:118,w:24,h:152}); // 118–270, ширина зазора m1–m2
+  const x=MPAIRS[p].m1.x+MPAIRS[p].m1.w;
+  CORRIDORS.push({x:x,y:118,w:24,h:152}); // 118–270
 }
-// вертикальные проходы в просветах 2-го ряда
+// просветы 2-го ряда
 [[62,96],[154,185],[245,320]].forEach(g=>{
   CORRIDORS.push({x:g[0],y:244,w:g[1]-g[0],h:128}); // 244–372
 });
